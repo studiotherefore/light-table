@@ -185,6 +185,13 @@ a.session:hover .go { color: var(--accent); }
 .folder-sm:hover:not(:disabled) { color: var(--accent); }
 .linkbtn:disabled, .folder-sm:disabled { opacity: .45; cursor: default; }
 
+/* the board's own tooltip: appears after a beat, then fades on its own */
+.tip { position: fixed; z-index: 50; max-width: 260px; padding: 3px 7px; border-radius: 3px;
+  background: var(--sheet-2); border: 1px solid var(--rule-hi); color: var(--ink-2);
+  font: 11px/1.3 var(--body); pointer-events: none; opacity: 0;
+  transition: opacity .33s ease; }
+.tip.on { opacity: 1; }
+
 /* dragging */
 [draggable="true"] { cursor: grab; }
 .dragging { opacity: .35; }
@@ -306,6 +313,7 @@ function render() {
   document.getElementById("resting").innerHTML = resting.map(row).join("") || `<p class="empty-zone">Nothing resting.</p>`;
   document.getElementById("archive-n").textContent = archive.length;
   document.getElementById("archive").innerHTML = archive.map(row).join("") || `<p class="empty-zone">Drag finished or abandoned projects here.</p>`;
+  if (typeof adoptTitles === "function") adoptTitles();
 }
 
 function openLinks(p) {
@@ -317,8 +325,8 @@ function openLinks(p) {
   return out.join("");
 }
 
-const drag = SAVE ? `draggable="true" title="Drag to reorder, or into Resting or Archive"` : "";
-const grip = SAVE ? `<span class="grip" aria-hidden="true">⋮⋮</span>` : "";
+const drag = SAVE ? `draggable="true"` : "";
+const grip = SAVE ? `<span class="grip" title="Drag to reorder, or into Resting or Archive">⋮⋮</span>` : "";
 
 function slide(p) {
   const stale = p.filesChanged && p.updated && p.filesChanged > p.updated;
@@ -501,6 +509,42 @@ document.addEventListener("mouseout", e => {
   if (btn === cyc.btn && !btn.contains(e.relatedTarget)) stopCycle(true);
 });
 
+// ---- Tooltips: the browser's own can't be timed, so the board draws its own ----
+// Every title="…" becomes data-tip; it shows after TIP_DELAY and fades after TIP_HOLD,
+// so resting on something (like the screenshot cycle) isn't covered for long.
+const TIP_DELAY = 550, TIP_HOLD = 2250;
+const tipEl = Object.assign(document.createElement("div"), { className: "tip", role: "tooltip" });
+document.body.appendChild(tipEl);
+let tipFor = null, tipTimers = [];
+function adoptTitles(root = document) {
+  root.querySelectorAll("[title]").forEach(el => {
+    el.dataset.tip = el.getAttribute("title");
+    if (!el.getAttribute("aria-label") && !el.textContent.trim()) el.setAttribute("aria-label", el.dataset.tip);
+    el.removeAttribute("title");
+  });
+}
+function hideTip() { tipTimers.forEach(clearTimeout); tipTimers = []; tipEl.classList.remove("on"); tipFor = null; }
+document.addEventListener("mouseover", e => {
+  const el = e.target.closest && e.target.closest("[data-tip]");
+  if (el === tipFor) return;
+  hideTip();
+  if (!el || dragId) return;
+  tipFor = el;
+  tipTimers.push(setTimeout(() => {
+    tipEl.textContent = el.dataset.tip;
+    const r = el.getBoundingClientRect(), w = Math.min(280, tipEl.offsetWidth || 200);
+    tipEl.style.left = Math.max(8, Math.min(innerWidth - w - 8, r.left + r.width / 2 - w / 2)) + "px";
+    tipEl.style.top = (r.bottom + 6 + 30 > innerHeight ? r.top - 28 : r.bottom + 6) + "px";
+    tipEl.classList.add("on");
+    tipTimers.push(setTimeout(() => tipEl.classList.remove("on"), TIP_HOLD));
+  }, TIP_DELAY));
+});
+document.addEventListener("mouseout", e => {
+  if (tipFor && !tipFor.contains(e.relatedTarget)) hideTip();
+});
+document.addEventListener("dragstart", hideTip, true);
+document.addEventListener("scroll", hideTip, true);
+
 document.addEventListener("click", e => {
   const a = e.target.closest("[data-act]");
   if (a && SAVE) {
@@ -521,6 +565,7 @@ document.addEventListener("click", e => {
   render();
 });
 render();
+adoptTitles();
 </script>
 </body>
 </html>

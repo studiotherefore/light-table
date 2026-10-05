@@ -30,6 +30,7 @@ See `projects.example.json` for a filled-in example.
 | `handoff` | setup / agent | Path (relative to the root) of the project's main handoff/notes file, if any. The board's Notes button opens it. |
 | `screenshot` | setup | Optional fallback image path (relative to the root). |
 | `autoCapture` | owner | `false` keeps headless captures off for projects where they only show a loading, login or audio-gate screen. |
+| `sweep` | owner | `false` makes the nightly sweep skip this entry (for example the board's own entry, which you update by hand). |
 | `shelf` | **owner only** | `motion` · `resting` · `archive`. Set by dragging on the board. |
 | `rank` | **owner only** | Position in the owner's order. Set by dragging on the board. |
 

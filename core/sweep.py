@@ -67,6 +67,8 @@ def main():
 
     changed = []
     for p in data["projects"]:
+        if p.get("sweep") is False:
+            continue  # the owner opted this entry out of nightly updates
         folder = os.path.join(ROOT, p["folder"])
         if not os.path.exists(folder):
             changed.append({"id": p["id"], "folder": p["folder"], "missing": True})

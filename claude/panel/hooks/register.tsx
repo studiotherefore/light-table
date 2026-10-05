@@ -161,7 +161,14 @@ export const register: Register = (on, options) => {
       await $.prompt.submit({ text: restartText(cur) })
     }
     const wrap = async () => {
+      const cur = await read($, project)
+      $.ui.toast(cur ? `Updating ${cur.name} on the board…` : 'Adding this folder to the board…')
       await $.prompt.submit({ text: wrapText() })
+    }
+    const restartWithNotice = async () => {
+      const cur = await read($, project)
+      if (cur?.server) $.ui.toast(`Restarting ${cur.name}'s server…`)
+      await restart()
     }
 
     // Draw this row, then whatever other plugins put above the prompt (another
@@ -203,7 +210,7 @@ export const register: Register = (on, options) => {
         {!p && <Text dimColor>This folder isn't on the board yet. Wrap up adds it.</Text>}
         <Box flexDirection="row" gap={1}>
           {p?.server && (
-            <Button key="restart" label={s === 'up' ? 'Restart server' : 'Start server'} variant={s === 'down' ? 'primary' : 'secondary'} onPress={restart} />
+            <Button key="restart" label={s === 'up' ? 'Restart server' : 'Start server'} variant={s === 'down' ? 'primary' : 'secondary'} onPress={restartWithNotice} />
           )}
           <Button key="wrap" label={p ? 'Update board' : 'Add to board'} variant={s === 'down' ? 'secondary' : 'primary'} onPress={wrap} />
           <Button key="board" label="Open board" onPress={openBoard} />

@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""Capture the current full view of each project for the Studio Board.
+"""Capture the current full view of each project for Light Table.
 
 For every project: if its local server is running, capture that (the newest
 work); otherwise capture its live site. Headless Chrome, 1440x900, saved to
-auto/<id>.png in the table folder. A page that never settles (Street View streams
+auto/<id>.png in the table folder. A page that never settles (maps and video streams
 forever) is cut off after a time limit rather than hanging.
 
   python3 snap.py              every project with a running server or a live site
-  python3 snap.py --only drift one project (the Wrap up button uses this)
+  python3 snap.py --only tide-clock  one project (the Wrap up button uses this)
 
 Only writes inside the table folder's auto/.
 """

@@ -1,0 +1,11 @@
+{
+ "root": "~/Projects",
+ "port": 8130,
+ "title": "Light Table",
+ "chrome": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+ "sessions": "auto",
+ "skipDirs": [],
+ "ignoreFolders": ["Archive", "Reference"],
+ "gallerySkip": ["old", "archive", "_old"],
+ "galleryMax": 5
+}

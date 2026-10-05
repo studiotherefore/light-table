@@ -1,0 +1,522 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Light Table</title>
+<link rel="icon" href="/favicon.ico?v=4" sizes="32x32 64x64">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=4">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg?v=4">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=4">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a light table. Active projects as slides, a ledger of resting ones, an archive folded away below. */
+:root {
+  --ground: #101215;        /* light table, lights off */
+  --sheet: #181b20;         /* slide mount */
+  --sheet-2: #1f232a;
+  --ink: #e9ebef;
+  --ink-2: #aeb5c0;
+  --ink-3: #757d8a;
+  --rule: #2a2f37;
+  --rule-hi: #3a414c;     /* an edge catching the light */
+  --accent: #93a6ff;        /* cobalt grease pencil, lifted for dark */
+  --accent-ink: #0f1220;
+  --go: #6fd3a0;   --go-wash: #15301f;
+  --wait: #f0b45a; --wait-wash: #382810;
+  --rest: #9aa2ad; --rest-wash: #23272e;
+  --display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --body: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--ground); color: var(--ink);
+  font: 15px/1.5 var(--body); font-variation-settings: "wdth" 96;
+  padding-inline: clamp(16px, 4vw, 48px); padding-block: 28px 64px;
+}
+a { color: inherit; }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.wrap { max-width: 1320px; margin-inline: auto; display: grid; gap: 36px; }
+
+/* masthead */
+header { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px 32px;
+  border-bottom: 2px solid var(--ink); padding-bottom: 14px; }
+.mark { display: flex; align-items: center; gap: 14px; }
+/* the ∴ mark, drawn like the tab icon and sized to the title's capitals */
+.mark .glyph { height: 0.54em; width: auto; font-size: clamp(28px, 4vw, 40px); color: var(--accent); flex: none; }
+h1 { margin: 0; font: 760 clamp(28px, 4vw, 40px)/1 var(--display); font-variation-settings: "wdth" 72;
+  letter-spacing: -0.01em; text-transform: uppercase; }
+.meta { font: 12px/1.6 var(--mono); color: var(--ink-3); text-align: right; }
+.meta b { color: var(--ink-2); font-weight: 500; }
+
+h2 { margin: 0 0 14px; font: 650 12px/1 var(--body); letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--ink-2); display: flex; gap: 10px; align-items: baseline; }
+h2 .n { font-family: var(--mono); color: var(--ink-3); letter-spacing: 0; }
+
+/* filter */
+.filters { display: flex; flex-wrap: wrap; gap: 6px; margin-top: -12px; }
+.filters button { font: 500 11px/1 var(--mono); padding: 5px 9px; border-radius: 999px; cursor: pointer;
+  border: 1px solid var(--rule); background: transparent; color: var(--ink-2); }
+.filters button[aria-pressed="true"] { background: var(--ink); color: var(--ground); border-color: var(--ink); }
+
+/* slides */
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); gap: 22px; }
+.slide { background: var(--sheet); border: 1px solid var(--rule); border-radius: 4px; padding: 10px;
+  display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.shot { aspect-ratio: 16 / 10; max-width: 100%; border-radius: 2px; overflow: hidden; background: var(--ground);
+  position: relative; display: block; }
+.shot img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.shot img.layer { opacity: 0; transition: opacity .5s ease; }
+.shot img.layer.on { opacity: 1; }
+.shot img.fit { object-fit: contain; }
+
+/* hover-cycle: a faint icon left of the date plays the project's other screenshots */
+.cycle { background: none; border: 0; padding: 2px 3px; margin: 0; cursor: default; color: var(--ink-3);
+  opacity: 0; transition: opacity .25s ease, color .2s ease; line-height: 0; align-self: center; }
+.slide:hover .cycle { opacity: .7; }
+.slide .cycle:hover, .slide .cycle.playing { opacity: 1; color: var(--accent); }
+.cycle svg { width: 15px; height: 15px; }
+.pips { position: absolute; left: 8px; bottom: 8px; display: flex; gap: 4px; padding: 5px 6px; border-radius: 3px;
+  background: rgba(10, 12, 15, .6); opacity: 0; transition: opacity .3s ease; pointer-events: none; }
+.pips.on { opacity: 1; }
+.pips i { width: 5px; height: 5px; border-radius: 50%; background: var(--ink-3); }
+.pips i.at { background: var(--ink); }
+.shot .none { position: absolute; inset: 0; display: grid; place-items: center; text-align: center;
+  font: 12px/1.4 var(--mono); color: var(--ink-3); }
+.shot .none span { display: block; font: 300 52px/1 var(--display); color: var(--rule); }
+/* where the picture came from: shown only while the pointer is over it */
+.src { position: absolute; right: 8px; bottom: 8px; font: 500 10.5px/1 var(--mono); padding: 4px 7px; border-radius: 3px;
+  background: rgba(10, 12, 15, .72); color: var(--ink-2); opacity: 0; transition: opacity .15s; pointer-events: none; }
+.shot:hover .src { opacity: 1; }
+.pill { position: absolute; top: 8px; left: 8px; font: 500 11px/1 var(--mono); padding: 5px 8px; border-radius: 3px;
+  text-transform: uppercase; letter-spacing: 0.05em; }
+.pill.active { background: var(--go-wash); color: var(--go); }
+.pill.waiting { background: var(--wait-wash); color: var(--wait); }
+.pill.paused, .pill.dormant { background: var(--rest-wash); color: var(--rest); }
+.body { padding: 0 6px 4px; display: grid; gap: 10px; min-width: 0; }
+.title { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+h3 { margin: 0; font: 700 21px/1.15 var(--display); font-variation-settings: "wdth" 80; text-wrap: balance; }
+.when { font: 12px/1 var(--mono); color: var(--ink-3); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.kind { font: 12px/1.4 var(--mono); color: var(--ink-3); margin-top: -6px; overflow-wrap: anywhere; }
+.now { margin: 0; color: var(--ink-2); font-size: 14px; }
+.next { border-left: 2px solid var(--accent); padding: 2px 0 2px 10px; }
+.next .lbl, .flag .lbl { font: 600 10.5px/1 var(--body); letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); display: block; margin-bottom: 4px; }
+.next p { margin: 0; font-weight: 520; }
+.flag { font-size: 13px; color: var(--wait); }
+.links { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; }
+.links a { font: 500 12px/1 var(--mono); text-decoration: none; padding: 7px 10px; border-radius: 3px;
+  border: 1px solid var(--rule); color: var(--ink-2); }
+.links a.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.links a:hover { border-color: var(--ink-3); }
+.links .note { font: 11px/1.3 var(--mono); color: var(--ink-3); align-self: center; }
+
+/* card tabs */
+.tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--rule); }
+.tabs button { font: 600 11px/1 var(--body); letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer;
+  background: none; border: 0; border-bottom: 2px solid transparent; margin-bottom: -1px; padding: 8px 10px 9px; color: var(--ink-3);
+  display: inline-flex; gap: 7px; align-items: center; }
+.tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+.tabs .count { font: 500 11px/1 var(--mono); letter-spacing: 0; padding: 3px 6px; border-radius: 3px;
+  background: var(--wait-wash); color: var(--wait); }
+.panel { display: grid; gap: 10px; }
+.panel[hidden] { display: none; }
+.decisions { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.decisions li { display: grid; grid-template-columns: 12px 1fr; gap: 9px; font-size: 14px; line-height: 1.42; }
+.decisions li::before { content: ""; width: 8px; height: 8px; margin-top: 6px; border: 1.5px solid var(--wait); border-radius: 2px; }
+.quiet { color: var(--ink-3); font-size: 14px; margin: 0; }
+
+/* lists: resting and archive */
+.ledger { border-top: 1px solid var(--rule); min-height: 52px; }
+.row { display: grid; grid-template-columns: 72px minmax(0, 1.1fr) minmax(0, 2fr) auto; gap: 16px; align-items: center;
+  padding: 8px 2px; border-bottom: 1px solid var(--rule); }
+.thumb { width: 72px; aspect-ratio: 16 / 10; border-radius: 2px; overflow: hidden; background: var(--sheet);
+  display: grid; place-items: center; color: var(--rule); font: 300 20px/1 var(--display); }
+.thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.row b { font-weight: 650; }
+.row .kind { margin: 2px 0 0; }
+.row .s { color: var(--ink-2); font-size: 14px; min-width: 0; }
+.row .r { display: flex; align-items: center; gap: 10px; }
+.empty-zone { color: var(--ink-3); font: 12px/1.4 var(--mono); padding: 16px 2px; }
+
+/* archive fold-down */
+details.archive { border-top: 1px solid var(--rule); }
+details.archive > summary { list-style: none; cursor: pointer; padding: 14px 2px; display: flex; gap: 10px; align-items: baseline;
+  font: 650 12px/1 var(--body); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-2); }
+details.archive > summary::-webkit-details-marker { display: none; }
+details.archive > summary::before { content: "▸"; color: var(--ink-3); letter-spacing: 0; transition: transform .15s; }
+details.archive[open] > summary::before { transform: rotate(90deg); }
+details.archive > summary .n { font-family: var(--mono); color: var(--ink-3); letter-spacing: 0; }
+details.archive > summary .hint { font: 400 11.5px/1 var(--mono); letter-spacing: 0; text-transform: none; color: var(--ink-3); margin-left: auto; }
+details.archive .row { opacity: .8; }
+
+/* owner actions */
+.head-r { display: grid; gap: 8px; justify-items: end; }
+.actions { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; align-items: center; }
+.act { font: 500 12px/1 var(--mono); padding: 7px 11px; border-radius: 3px; cursor: pointer;
+  border: 1px solid var(--rule); background: var(--sheet); color: var(--ink-2); }
+.act:hover:not(:disabled) { border-color: var(--ink-3); color: var(--ink); }
+.act:disabled { opacity: .45; cursor: default; }
+.busy { font: 12px/1 var(--mono); color: var(--accent); }
+.title .r { display: flex; align-items: baseline; gap: 10px; }
+
+/* title opens the project's session */
+a.session { color: inherit; text-decoration: none; }
+a.session .go { font: 400 .62em/1 var(--mono); color: var(--ink-3); margin-left: .45em; vertical-align: .35em; transition: color .15s; }
+a.session:hover { text-decoration: underline; text-decoration-color: var(--accent); text-underline-offset: 4px; }
+a.session:hover .go { color: var(--accent); }
+
+/* folder + handoff buttons, styled like the card's link buttons */
+.linkbtn { font: 500 12px/1 var(--mono); padding: 7px 10px; border-radius: 3px; cursor: pointer;
+  border: 1px solid var(--rule); color: var(--ink-2); background: transparent; }
+.linkbtn:hover:not(:disabled) { border-color: var(--ink-3); color: var(--ink); }
+.linkbtn.folder { padding: 6px 9px; display: inline-grid; place-items: center; }
+.linkbtn.folder svg { width: 14px; height: 14px; }
+.folder-sm { background: none; border: 0; padding: 2px 4px; margin-left: 6px; cursor: pointer; color: var(--ink-3);
+  vertical-align: -2px; border-radius: 3px; }
+.folder-sm:hover:not(:disabled) { color: var(--accent); }
+.linkbtn:disabled, .folder-sm:disabled { opacity: .45; cursor: default; }
+
+/* dragging */
+[draggable="true"] { cursor: grab; }
+.dragging { opacity: .35; }
+.grip { color: var(--ink-3); font: 14px/1 var(--mono); letter-spacing: -2px; user-select: none; }
+.slide.drop-before { box-shadow: -5px 0 0 -1px var(--accent); }
+.slide.drop-after { box-shadow: 5px 0 0 -1px var(--accent); }
+.row.drop-before { box-shadow: inset 0 2px 0 var(--accent); }
+.row.drop-after { box-shadow: inset 0 -2px 0 var(--accent); }
+.drop-end { outline: 2px dashed var(--accent); outline-offset: 4px; border-radius: 4px; }
+
+@media (max-width: 640px) {
+  .row { grid-template-columns: 56px 1fr auto; }
+  .thumb { width: 56px; }
+  .row .s { grid-column: 2 / -1; }
+  .meta { text-align: left; }
+}
+/* Hover: picking a slide up off the light table. On this dark ground the lift reads
+   through light (the surface and edge brighten, a highlight on the top edge) more than
+   through shadow; the deep shadow adds a little separation. Up is quicker than down so
+   it settles rather than snaps, and the picture drifts closer more slowly than the lift. */
+.slide { transition: background-color .45s ease, border-color .45s ease, box-shadow .45s ease; }
+.slide:hover { background-color: var(--sheet-2); border-color: var(--rule-hi);
+  transition-duration: .25s; }
+.slide:hover:not(.drop-before):not(.drop-after) {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .05), 0 18px 34px -14px rgba(0, 0, 0, .85), 0 3px 8px rgba(0, 0, 0, .45); }
+@media (prefers-reduced-motion: no-preference) {
+  .slide { transition: transform .45s cubic-bezier(.22, .8, .3, 1), background-color .45s ease,
+    border-color .45s ease, box-shadow .45s ease; }
+  .slide:hover { transform: translateY(-2px); transition-duration: .26s; }
+  /* the slow drift, sharing the image layers with the cycle's crossfade */
+  .shot img.layer { transition: opacity .5s ease, transform 1.4s cubic-bezier(.22, .7, .3, 1); }
+  .slide:hover .shot img.layer { transform: scale(1.02); transition: opacity .5s ease, transform 1.2s cubic-bezier(.22, .7, .3, 1); }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="mark"><svg class="glyph" viewBox="13.4 15.4 37.2 33.4" aria-hidden="true"><g fill="currentColor"><circle cx="32" cy="20" r="4.6"/><circle cx="18" cy="44.2" r="4.6"/><circle cx="46" cy="44.2" r="4.6"/></g></svg><h1 id="board-title">Light Table</h1></div>
+    <div class="head-r">
+      <div class="meta" id="meta"></div>
+      <div class="actions">
+        <span class="busy" id="busy" hidden></span>
+        <button type="button" class="act" data-act="rescan" title="Pick up new screenshots and dates">Rescan</button>
+        <button type="button" class="act" data-act="recapture" title="Retake the automatic screenshots (about a minute)">Recapture</button>
+      </div>
+    </div>
+  </header>
+
+  <nav class="filters" id="filters" aria-label="Filter projects"></nav>
+
+  <section aria-labelledby="motion-h">
+    <h2 id="motion-h">Active <span class="n" id="motion-n"></span></h2>
+    <div class="grid zone" id="motion" data-shelf="motion"></div>
+  </section>
+
+  <section aria-labelledby="rest-h">
+    <h2 id="rest-h">Resting <span class="n" id="rest-n"></span></h2>
+    <div class="ledger zone" id="resting" data-shelf="resting"></div>
+  </section>
+
+  <details class="archive" id="archive-box">
+    <summary id="archive-sum">Archive <span class="n" id="archive-n"></span><span class="hint">drag old projects here</span></summary>
+    <div class="ledger zone" id="archive" data-shelf="archive"></div>
+  </details>
+</div>
+
+<script>
+const STUDIO = /*__STUDIO_DATA__*/null;
+
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const today = new Date(new Date().toDateString());
+const daysAgo = iso => iso ? Math.round((today - new Date(iso + "T00:00")) / 864e5) : null;
+const ago = iso => { const d = daysAgo(iso); if (d == null) return "—"; if (d <= 0) return "today"; if (d === 1) return "yesterday"; if (d < 45) return d + "d ago"; return Math.round(d / 30) + "mo ago"; };
+const shortDate = iso => iso ? new Date(iso + "T00:00").toLocaleDateString(undefined, { month: "short", day: "numeric" }) : "";
+const lastTouch = p => [p.lastWorked, p.filesChanged].filter(Boolean).sort().pop();
+const LABEL = { active: "Active", waiting: "Waiting on you", paused: "Paused", dormant: "Dormant" };
+// Buttons and dragging save only when the board is served by mods/studio/server.py.
+const SAVE = location.protocol === "http:";
+if (STUDIO.title) { document.title = STUDIO.title; document.getElementById("board-title").textContent = STUDIO.title; }
+
+// Where a project sits: the owner's choice when they've dragged it, else from its status.
+const shelf = p => p.shelf || ((p.status === "active" || p.status === "waiting") ? "motion" : "resting");
+const rank = p => (typeof p.rank === "number" ? p.rank : Infinity);
+const byOrder = (a, b) => (rank(a) - rank(b)) || String(lastTouch(b)).localeCompare(String(lastTouch(a)));
+
+let filter = "all";
+try { filter = localStorage.getItem("studio-filter") || "all"; } catch (e) {}
+
+// "today, 9:01 AM" / "yesterday, 11:14 PM" / "Oct 2, 9:01 AM": when the board last refreshed.
+function whenBuilt(d) {
+  const time = d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  const days = Math.round((today - new Date(d.toDateString())) / 864e5);
+  const day = days === 0 ? "today" : days === 1 ? "yesterday" : d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  return `${day}, ${time}`;
+}
+
+function render() {
+  const ps = STUDIO.projects.filter(p => p.exists !== false);
+  const built = new Date(STUDIO.built);
+  document.getElementById("meta").innerHTML =
+    `<b>${ps.length}</b> projects · <b>${ps.filter(p => shelf(p) === "motion").length}</b> active<br>updated ${whenBuilt(built)}`;
+
+  const hasCalls = p => shelf(p) !== "archive" && (p.calls || []).length > 0;
+  const live = ps.filter(p => shelf(p) !== "archive");
+  const counts = live.reduce((m, p) => (m[p.status] = (m[p.status] || 0) + 1, m), {});
+  const opts = [["all", "All", live.length], ["decisions", "Has decisions", live.filter(hasCalls).length],
+    ...["active", "waiting", "paused", "dormant"].filter(s => counts[s]).map(s => [s, LABEL[s], counts[s]])];
+  document.getElementById("filters").innerHTML = opts.map(([k, l, n]) =>
+    `<button type="button" data-f="${k}" aria-pressed="${filter === k}">${esc(l)} ${n}</button>`).join("");
+
+  const show = p => filter === "all" || (filter === "decisions" ? hasCalls(p) : p.status === filter);
+  const on = s => ps.filter(p => shelf(p) === s && (s === "archive" || show(p))).sort(byOrder);
+  const motion = on("motion"), resting = on("resting"), archive = on("archive");
+
+  document.getElementById("motion-n").textContent = motion.length;
+  document.getElementById("motion").innerHTML = motion.map(slide).join("") || `<p class="empty-zone">${filter === "all" ? "Drag a project here to make it active." : "No projects in this view."}</p>`;
+  document.getElementById("rest-n").textContent = resting.length;
+  document.getElementById("resting").innerHTML = resting.map(row).join("") || `<p class="empty-zone">Nothing resting.</p>`;
+  document.getElementById("archive-n").textContent = archive.length;
+  document.getElementById("archive").innerHTML = archive.map(row).join("") || `<p class="empty-zone">Drag finished or abandoned projects here.</p>`;
+}
+
+function openLinks(p) {
+  const out = [];
+  if (p.liveUrl) out.push(`<a class="primary" href="${esc(p.liveUrl)}" target="_blank" rel="noopener">Live</a>`);
+  if (p.localUrl) out.push(`<a class="${p.liveUrl ? "" : "primary"}" href="${esc(p.localUrl)}" target="_blank" rel="noopener" title="Works while its server is running">Local :${esc(p.server?.port ?? "")}</a>`);
+  if (p.handoffUrl) out.push(`<button type="button" class="linkbtn" data-act="open-handoff" data-id="${esc(p.id)}" ${SAVE ? "" : "disabled"} title="Open the handoff notes">Notes</button>`);
+  out.push(folderBtn(p));
+  return out.join("");
+}
+
+const drag = SAVE ? `draggable="true" title="Drag to reorder, or into Resting or Archive"` : "";
+const grip = SAVE ? `<span class="grip" aria-hidden="true">⋮⋮</span>` : "";
+
+function slide(p) {
+  const stale = p.filesChanged && p.updated && p.filesChanged > p.updated;
+  const calls = p.calls || [];
+  const tab = (calls.length && p.status === "waiting") ? "decisions" : "overview";
+  const img = p.image
+    ? `<img class="layer on" src="${esc(p.image)}" alt="Latest screenshot of ${esc(p.name)}" loading="lazy" draggable="false"><img class="layer" alt="" draggable="false">${(p.gallery || []).length ? `<span class="pips" aria-hidden="true">${[p, ...p.gallery].map((_, i) => `<i${i ? "" : ` class="at"`}></i>`).join("")}</span>` : ""}`
+    : `<div class="none"><div><span>∴</span>no screenshot yet</div></div>`;
+  return `<article class="slide" data-id="${esc(p.id)}" ${drag}>
+    <div class="shot">${img}${p.imageSource ? `<span class="src">${esc(p.imageSource)} · ${shortDate(p.imageDate)}</span>` : ""}<span class="pill ${esc(p.status)}">${esc(LABEL[p.status] || p.status)}</span></div>
+    <div class="body">
+      <div class="title"><h3>${titleLink(p)}</h3><div class="r">${(p.image && (p.gallery || []).length) ? `<button type="button" class="cycle" data-cycle="${esc(p.id)}" aria-label="Show more screenshots" title="Hover to flip through screenshots">${CYCLE_SVG}</button>` : ""}<span class="when" title="Last worked">${ago(lastTouch(p))}</span>${grip}</div></div>
+      <div class="kind">${esc(p.kind)} · ${esc(p.folder)}</div>
+      <div class="tabs" role="tablist">
+        <button type="button" role="tab" data-tab="overview" aria-selected="${tab === "overview"}">Overview</button>
+        <button type="button" role="tab" data-tab="decisions" aria-selected="${tab === "decisions"}">Decisions${calls.length ? ` <span class="count">${calls.length}</span>` : ""}</button>
+      </div>
+      <div class="panel" data-panel="overview" role="tabpanel" ${tab === "overview" ? "" : "hidden"}>
+        ${p.now ? `<p class="now">${esc(p.now)}</p>` : ""}
+        ${p.nextStep ? `<div class="next"><span class="lbl">Next</span><p>${esc(p.nextStep)}</p></div>` : ""}
+        ${stale ? `<div class="flag"><span class="lbl">Check</span>Files changed ${ago(p.filesChanged)}; this note is from ${esc(p.updated)}.</div>` : ""}
+      </div>
+      <div class="panel" data-panel="decisions" role="tabpanel" ${tab === "decisions" ? "" : "hidden"}>
+        ${calls.length ? `<ul class="decisions">${calls.map(c => `<li>${esc(c)}</li>`).join("")}</ul>` : `<p class="quiet">Nothing waiting on you here.</p>`}
+      </div>
+      <div class="links">${openLinks(p)}</div>
+    </div>
+  </article>`;
+}
+
+const CYCLE_SVG = `<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="4.5" y="2.5" width="9" height="7" rx="1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2.5" y="5.5" width="9" height="7" rx="1" fill="var(--sheet)" stroke="currentColor" stroke-width="1.2"/></svg>`;
+
+// Folder outline: opens the project's folder in Finder (through the board server;
+// browsers won't open local folders from a web page).
+const FOLDER_SVG = `<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M1.75 3.25h4.1l1.5 1.6h6.9v7.9H1.75z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>`;
+function folderBtn(p, small = false) {
+  return `<button type="button" class="${small ? "folder-sm" : "linkbtn folder"}" data-act="open-folder" data-id="${esc(p.id)}" ${SAVE ? "" : "disabled"} title="Open ${esc(p.folder)} in Finder" aria-label="Open folder in Finder">${FOLDER_SVG}</button>`;
+}
+
+// The project's name opens its latest agent session (or a new one in its folder).
+function titleLink(p) {
+  if (!p.sessionUrl) return esc(p.name);
+  const tip = p.sessionLast
+    ? `Open session${p.sessionTitle ? ` “${p.sessionTitle}”` : ""} (last active ${ago(p.sessionLast.slice(0, 10))})`
+    : "Start a new session in this folder";
+  return `<a class="session" href="${esc(p.sessionUrl)}" draggable="false" title="${esc(tip)}">${esc(p.name)}<span class="go" aria-hidden="true">${p.sessionLast ? "↗" : "+"}</span></a>`;
+}
+
+function row(p) {
+  const thumb = p.image ? `<img src="${esc(p.image)}" alt="" loading="lazy" draggable="false">` : "∴";
+  return `<div class="row" data-id="${esc(p.id)}" ${drag}>
+    <div class="thumb">${thumb}</div>
+    <div><b>${titleLink(p)}</b>${folderBtn(p, true)}<div class="kind">${esc(p.kind)} · ${esc(LABEL[p.status] || p.status)}</div></div>
+    <div class="s">${esc(p.nextStep || p.summary)}</div>
+    <div class="r"><span class="when">${ago(lastTouch(p))}</span>${grip}</div></div>`;
+}
+
+if (!SAVE) document.querySelectorAll(".actions .act").forEach(b => { b.disabled = true; b.title = "Open the board through its local server (python3 core/open.py) to use this"; });
+
+async function post(path, body, label, reload = true) {
+  const busy = document.getElementById("busy");
+  busy.textContent = label; busy.hidden = false;
+  try {
+    const r = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body || {}) });
+    if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || r.status);
+    if (reload) location.reload(); else busy.hidden = true;
+  } catch (err) {
+    busy.textContent = "Didn't save: " + err.message + ". Is the board server running?";
+  }
+}
+
+// ---- Drag and drop between In motion, Resting and Archive ----
+// While dragging, a line shows where the item will land; on drop the data is
+// reordered, the board redraws, and the whole order + shelves are saved.
+let dragId = null, target = null;
+const zones = [...document.querySelectorAll(".zone")];
+const archiveBox = document.getElementById("archive-box");
+const clearHints = () => document.querySelectorAll(".drop-before, .drop-after, .drop-end").forEach(el => el.classList.remove("drop-before", "drop-after", "drop-end"));
+
+document.addEventListener("dragstart", e => {
+  const item = e.target.closest && e.target.closest(".slide, .row");
+  if (!item || !SAVE) return;
+  dragId = item.dataset.id; item.classList.add("dragging");
+  e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData("text/plain", dragId);
+});
+
+document.addEventListener("dragover", e => {
+  if (!dragId) return;
+  const zoneEl = e.target.closest(".zone") || (e.target.closest("#archive-sum") && document.getElementById("archive"));
+  if (!zoneEl) { clearHints(); target = null; return; }
+  e.preventDefault();
+  clearHints();
+  const item = e.target.closest(".slide, .row");
+  if (item && item.dataset.id !== dragId && zoneEl.contains(item)) {
+    const r = item.getBoundingClientRect();
+    const after = item.classList.contains("slide") ? e.clientX > r.left + r.width / 2 : e.clientY > r.top + r.height / 2;
+    item.classList.add(after ? "drop-after" : "drop-before");
+    target = { shelf: zoneEl.dataset.shelf, id: item.dataset.id, after };
+  } else {
+    (e.target.closest("#archive-sum") || zoneEl).classList.add("drop-end");
+    target = { shelf: zoneEl.dataset.shelf, id: null };
+  }
+});
+
+document.addEventListener("drop", e => { if (dragId && target) e.preventDefault(); });
+
+document.addEventListener("dragend", () => {
+  document.querySelectorAll(".dragging").forEach(el => el.classList.remove("dragging"));
+  clearHints();
+  if (!dragId || !target) { dragId = null; return; }
+  const moved = STUDIO.projects.find(p => p.id === dragId);
+  // Full order: every shelf in sequence, each in its current order (filters ignored).
+  const list = s => STUDIO.projects.filter(p => shelf(p) === s && p !== moved).sort(byOrder);
+  const lists = { motion: list("motion"), resting: list("resting"), archive: list("archive") };
+  const dest = lists[target.shelf];
+  let at = target.id ? dest.findIndex(p => p.id === target.id) + (target.after ? 1 : 0) : dest.length;
+  dest.splice(at < 0 ? dest.length : at, 0, moved);
+  moved.shelf = target.shelf;
+  const all = [...lists.motion, ...lists.resting, ...lists.archive];
+  all.forEach((p, i) => { p.rank = i; });
+  if (target.shelf === "archive") archiveBox.open = true;
+  dragId = null; target = null;
+  render();
+  post("/api/order", { ids: all.map(p => p.id), shelves: Object.fromEntries(all.map(p => [p.id, shelf(p)])) }, "Saving…", false);
+});
+
+// Opening a closed Archive while dragging over it.
+document.getElementById("archive-sum").addEventListener("dragenter", () => { if (dragId) archiveBox.open = true; });
+try { archiveBox.open = localStorage.getItem("studio-archive-open") === "1"; } catch (e) {}
+archiveBox.addEventListener("toggle", () => { try { localStorage.setItem("studio-archive-open", archiveBox.open ? "1" : "0"); } catch (e) {} });
+
+// ---- Hover cycle: rest on the stacked-frames icon to flip through the project's screenshots ----
+// Starts after a short beat, crossfades every ~2s, loops while hovered, fades back on leave.
+const REDUCED = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const CYCLE_START = 400, CYCLE_STEP = 2100;
+let cyc = null;
+
+function showImage(card, img, idx) {
+  const layers = card.querySelectorAll(".shot img.layer");
+  const front = [...layers].find(l => l.classList.contains("on")), back = [...layers].find(l => l !== front);
+  back.onload = () => {
+    back.classList.toggle("fit", !!img.tall);
+    back.style.transition = REDUCED ? "none" : "";
+    front.style.transition = REDUCED ? "none" : "";
+    back.classList.add("on"); front.classList.remove("on");
+  };
+  back.src = img.src;
+  card.querySelectorAll(".pips i").forEach((pip, i) => pip.classList.toggle("at", i === idx));
+}
+
+function stopCycle(fadeBack) {
+  if (!cyc) return;
+  clearTimeout(cyc.timer); clearInterval(cyc.loop);
+  const { card, seq } = cyc;
+  card.querySelector(".cycle")?.classList.remove("playing");
+  card.querySelector(".pips")?.classList.remove("on");
+  if (fadeBack && cyc.idx !== 0) showImage(card, seq[0], 0);
+  cyc = null;
+}
+
+document.addEventListener("mouseover", e => {
+  const btn = e.target.closest && e.target.closest("[data-cycle]");
+  if (!btn || (cyc && cyc.btn === btn)) return;
+  stopCycle(true);
+  const p = STUDIO.projects.find(x => x.id === btn.dataset.cycle);
+  const card = btn.closest(".slide");
+  const seq = [{ src: p.image, tall: false }, ...p.gallery];
+  seq.slice(1).forEach(g => { const im = new Image(); im.src = g.src; });  // warm the cache
+  cyc = { btn, card, seq, idx: 0 };
+  cyc.timer = setTimeout(() => {
+    btn.classList.add("playing");
+    card.querySelector(".pips")?.classList.add("on");
+    const step = () => { cyc.idx = (cyc.idx + 1) % seq.length; showImage(card, seq[cyc.idx], cyc.idx); };
+    step(); cyc.loop = setInterval(step, CYCLE_STEP);
+  }, CYCLE_START);
+});
+document.addEventListener("mouseout", e => {
+  if (!cyc) return;
+  const btn = e.target.closest && e.target.closest("[data-cycle]");
+  if (btn === cyc.btn && !btn.contains(e.relatedTarget)) stopCycle(true);
+});
+
+document.addEventListener("click", e => {
+  const a = e.target.closest("[data-act]");
+  if (a && SAVE) {
+    if (a.dataset.act === "rescan") return post("/api/rescan", {}, "Rescanning…");
+    if (a.dataset.act === "recapture") return post("/api/recapture", {}, "Retaking screenshots, about a minute…");
+    if (a.dataset.act === "open-folder") return post("/api/open", { id: a.dataset.id, what: "folder" }, "Opening in Finder…", false);
+    if (a.dataset.act === "open-handoff") return post("/api/open", { id: a.dataset.id, what: "handoff" }, "Opening notes…", false);
+  }
+  const tb = e.target.closest("[data-tab]");
+  if (tb) {
+    const card = tb.closest(".slide");
+    card.querySelectorAll("[data-tab]").forEach(x => x.setAttribute("aria-selected", x === tb));
+    card.querySelectorAll("[data-panel]").forEach(x => x.hidden = x.dataset.panel !== tb.dataset.tab);
+    return;
+  }
+  const b = e.target.closest("[data-f]"); if (!b) return;
+  filter = b.dataset.f; try { localStorage.setItem("studio-filter", filter); } catch (err) {}
+  render();
+});
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+__pycache__/
+.DS_Store
+*.tmp
+*.tmp.png
+# A table folder placed inside the repo by mistake
+config.json
+projects.json
+dashboard.html
+shots/
+auto/
+thumbs/
+server.log

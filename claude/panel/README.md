@@ -4,7 +4,7 @@ A row of buttons above the prompt in every Claude Code session:
 
 - the project's name, status, server light (● running / ○ stopped) and next step
 - **Start / Restart server**: asks Claude to start the project's dev server in the browser pane
-- **Wrap up**: runs the `light-table-wrap-up` skill
+- **Add to board** / **Update board**: runs the `light-table-wrap-up` skill (adds this folder, or rewrites its entry)
 - **Open board**: rebuilds the board, starts its server if needed, opens it
 - **Hide**: folds the row down to one small button
 

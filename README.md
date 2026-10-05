@@ -41,7 +41,7 @@ In Claude Code:
 
 Then ask: **"Set up Light Table."** The agent asks which folder holds your projects, reads each one's README / CLAUDE.md / handoff notes, drafts an entry for each (anything it guessed is marked "unconfirmed"), lets you correct the list, and opens the board.
 
-Optional: **buttons above the prompt** (Start/Restart server, Wrap up, Open board) and automatic dev-server restarts. This uses an early-access Claude Code API that still changes. See [claude/panel/README.md](claude/panel/README.md).
+Optional: **buttons above the prompt** (Start/Restart server, Add to board / Update board, Open board) and automatic dev-server restarts. This uses an early-access Claude Code API that still changes. See [claude/panel/README.md](claude/panel/README.md).
 
 ## Install for Codex
 
@@ -57,7 +57,7 @@ Then, in Codex: **"Set up Light Table."** See [codex/README.md](codex/README.md)
 | You want to | Say (or press) |
 |---|---|
 | See the board | "Open my board" (or **Open board**) |
-| Record where a project stands | "Wrap up" (or **Wrap up**) |
+| Record where a project stands | "Wrap up" (or **Update board**) |
 | Catch up every project now | "Run the Light Table sweep" |
 | Choose a project's cover image | Name an image in its folder `…current….png` |
 | Keep headless screenshots off for a project | Set `"autoCapture": false` on its entry |

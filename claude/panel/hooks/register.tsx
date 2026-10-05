@@ -165,7 +165,7 @@ export const register: Register = (on, options) => {
     // panel, a survey) underneath, so neither hides the other.
     const below = await next(e)
     const stack = (row: any) => (
-      <Box flexDirection="column">
+      <Box flexDirection="column" gap={1}>
         {row}
         {below}
       </Box>
@@ -196,7 +196,7 @@ export const register: Register = (on, options) => {
           {p?.server && (
             <Button key="restart" label={s === 'up' ? 'Restart server' : 'Start server'} variant={s === 'down' ? 'primary' : 'secondary'} onPress={restart} />
           )}
-          <Button key="wrap" label="Wrap up" variant={s === 'down' ? 'secondary' : 'primary'} onPress={wrap} />
+          <Button key="wrap" label={p ? 'Update board' : 'Add to board'} variant={s === 'down' ? 'secondary' : 'primary'} onPress={wrap} />
           <Button key="board" label="Open board" onPress={openBoard} />
           <Button key="hide" label="Hide" dimColor onPress={() => update($, isCollapsed, () => true)} />
         </Box>

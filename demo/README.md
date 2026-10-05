@@ -7,3 +7,5 @@ LIGHT_TABLE_HOME=demo/table python3 core/open.py
 ```
 
 It opens on port 8131. Everything here is made up: `table/` is the demo's table folder (config and record), `projects/` holds stand-in project folders with a README and screenshots each. Demo mode (`"demo": true` in its config) shifts the dates so the newest project always reads "today".
+
+The stand-in screenshots are drawn by `make-screenshots.py`.

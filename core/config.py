@@ -20,6 +20,7 @@ config.json (see config.example.json):
   ignoreFolders top-level folders under root that are never projects
   gallerySkip   folder names whose images stay out of the hover cycle
   galleryMax    how many images the hover cycle shows
+  demo          true for the demo board: dates shift so the newest entry is today
 
 Run it to see the resolved settings as JSON (skills and the panel use this):
   python3 core/config.py
@@ -30,6 +31,8 @@ import sys
 
 CORE = os.path.dirname(os.path.abspath(__file__))
 HOME = os.path.abspath(os.path.expanduser(os.environ.get("LIGHT_TABLE_HOME") or "~/.light-table"))
+# Child processes (the server, rebuilds) start in other folders: hand them the full path.
+os.environ["LIGHT_TABLE_HOME"] = HOME
 CONFIG_PATH = os.path.join(HOME, "config.json")
 RECORD = os.path.join(HOME, "projects.json")
 

@@ -149,6 +149,23 @@ def thumb_data_uri(src, pid):
         return "data:image/jpeg;base64," + base64.b64encode(fh.read()).decode()
 
 
+def shift_demo_dates(data):
+    """Demo boards: move every date so the newest entry reads as today, and ignore
+    file dates (a fresh clone makes every file look changed today)."""
+    dates = [p.get("updated") for p in data["projects"] if p.get("updated")]
+    if not dates:
+        return
+    shift = datetime.date.today() - datetime.date.fromisoformat(max(dates))
+    move = lambda d: (datetime.date.fromisoformat(d) + shift).isoformat() if d else d
+    data["updated"] = move(data.get("updated"))
+    for p in data["projects"]:
+        for key in ("lastWorked", "updated"):
+            p[key] = move(p.get(key))
+        p["filesChanged"] = p.get("lastWorked")
+        if p.get("imageDate"):
+            p["imageDate"] = p["lastWorked"] or p["imageDate"]
+
+
 def main():
     require_root()
     with open(RECORD) as fh:
@@ -176,6 +193,9 @@ def main():
         p["folderUrl"] = "file://" + quote(folder)
         if p.get("handoff"):
             p["handoffUrl"] = "file://" + quote(os.path.join(ROOT, p["handoff"]))
+
+    if CFG.get("demo"):
+        shift_demo_dates(data)
 
     # Drop gallery thumbnails nothing points at any more.
     for f in glob.glob(table_path("thumbs", "g-*.jpg")):

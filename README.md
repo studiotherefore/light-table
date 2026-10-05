@@ -2,6 +2,8 @@
 
 A local board of all your projects, kept current by your coding agent.
 
+![Light Table showing invented example projects: active cards with screenshots, next steps and decisions, and a resting list below](docs/board.jpg)
+
 One dark page at `http://localhost:8130` answers, at a glance: what's active, where each project stands, what the next step is, which decisions are waiting on you, and what it looks like now.
 
 - **Active** projects get large cards: screenshot, status, Overview / Decisions tabs, next step, buttons for the live site, local server, notes and folder.
@@ -18,6 +20,15 @@ Your agent keeps it current:
 Everything runs on your Mac. Status lives in one file in your own table folder (`~/.light-table/projects.json`); **your project folders are only ever read.**
 
 Requirements: macOS, Python 3 (built in), Google Chrome for automatic screenshots (optional), and Claude Code or Codex.
+
+## Try the demo first
+
+Clone the repo and open the demo board: invented projects, no setup.
+
+```bash
+git clone https://github.com/studiotherefore/light-table && cd light-table
+LIGHT_TABLE_HOME=demo/table python3 core/open.py
+```
 
 ## Install for Claude Code
 
@@ -59,6 +70,7 @@ The nightly sweep: [schedule/README.md](schedule/README.md).
 core/        the board: build.py, server.py, sweep.py, snap.py, open.py, template.html
              config.example.json, projects.example.json, RECORD.md (every field and rule)
 skills/      light-table-setup, -wrap-up, -sweep, -open (shared by Claude Code and Codex)
+demo/        an invented board to try it out (the image above)
 claude/      the optional Claude Code panel
 codex/       Codex install script and AGENTS.md snippet
 schedule/    nightly sweep through launchd for anyone without the Claude app's scheduler

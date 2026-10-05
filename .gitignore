@@ -10,3 +10,9 @@ shots/
 auto/
 thumbs/
 server.log
+
+# The demo board's own config and record are part of the repo
+!demo/table/config.json
+!demo/table/projects.json
+core-path
+sweep.log

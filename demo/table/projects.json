@@ -1,0 +1,166 @@
+{
+ "updated": "2026-10-03",
+ "projects": [
+  {
+   "id": "tide-clock",
+   "name": "Tide Clock",
+   "folder": "tide-clock",
+   "kind": "web app",
+   "summary": "A wall clock that shows the local tide instead of the hour.",
+   "status": "active",
+   "lastWorked": "2026-10-03",
+   "updated": "2026-10-03",
+   "now": "The dial, tide curve and moon phase draw correctly. The station picker lists nearby stations but doesn't save the choice yet.",
+   "nextStep": "Save the chosen station and redraw the dial from it.",
+   "calls": [
+    "Choose between the two dial designs in docs/dials.md",
+    "Approve the free tide API's attribution line"
+   ],
+   "server": {
+    "config": "dev",
+    "port": 5173,
+    "launchJson": null
+   },
+   "localUrl": "http://localhost:5173/",
+   "liveUrl": null,
+   "handoff": "tide-clock/HANDOFF.md",
+   "shelf": "motion",
+   "rank": 0
+  },
+  {
+   "id": "moth-radio",
+   "name": "Moth Radio",
+   "folder": "moth-radio",
+   "kind": "web radio",
+   "summary": "Plays night-time field recordings from wherever it is currently night.",
+   "status": "active",
+   "lastWorked": "2026-10-02",
+   "updated": "2026-10-02",
+   "now": "The night map and player work with 214 sample microphones. The time zone picker is built on a branch and not merged.",
+   "nextStep": "Try the time zone picker branch and okay the merge.",
+   "calls": [
+    "Try the time zone picker and okay the merge"
+   ],
+   "server": {
+    "config": "dev",
+    "port": 5174,
+    "launchJson": null
+   },
+   "localUrl": "http://localhost:5174/",
+   "liveUrl": null,
+   "shelf": "motion",
+   "rank": 1
+  },
+  {
+   "id": "field-recordings",
+   "name": "Field Recordings",
+   "folder": "Sound/field-recordings",
+   "kind": "album",
+   "summary": "Choosing and trimming a year of field recordings for a short album.",
+   "status": "waiting",
+   "lastWorked": "2026-09-29",
+   "updated": "2026-09-30",
+   "now": "Forty clips are trimmed and tagged; five are chosen for side A.",
+   "nextStep": "Pick the remaining seven clips for side A.",
+   "calls": [
+    "Pick the remaining seven clips for side A",
+    "Ask Sam about mastering dates",
+    "Send the label the track list by 2026-10-20"
+   ],
+   "server": null,
+   "shelf": "motion",
+   "rank": 2
+  },
+  {
+   "id": "loom-sim",
+   "name": "Loom Sim",
+   "folder": "loom-sim",
+   "kind": "simulation",
+   "summary": "A jacquard loom simulator that weaves patterns from punch-card files.",
+   "status": "active",
+   "lastWorked": "2026-09-27",
+   "updated": "2026-09-28",
+   "now": "The weaving engine renders plain weave and twill. Pattern files load; the editor is next.",
+   "nextStep": "Start the pattern editor: click cells to lift warp threads.",
+   "calls": [],
+   "server": null,
+   "shelf": "motion",
+   "rank": 3
+  },
+  {
+   "id": "letterpress-site",
+   "name": "Letterpress Site",
+   "folder": "letterpress-site",
+   "kind": "website",
+   "summary": "Portfolio site for a small letterpress studio.",
+   "status": "paused",
+   "lastWorked": "2026-08-14",
+   "updated": "2026-08-14",
+   "now": "Live, with the shop page hidden until prices are set.",
+   "nextStep": "Add prices and unhide the shop page.",
+   "calls": [
+    "Get the price list from the studio"
+   ],
+   "server": {
+    "config": "site",
+    "port": 8000,
+    "launchJson": null
+   },
+   "localUrl": "http://localhost:8000/",
+   "liveUrl": "https://example.com",
+   "shelf": "resting",
+   "rank": 4
+  },
+  {
+   "id": "pixel-garden",
+   "name": "Pixel Garden",
+   "folder": "pixel-garden",
+   "kind": "game prototype",
+   "summary": "A tiny idle game about growing plants out of pixels.",
+   "status": "paused",
+   "lastWorked": "2026-07-30",
+   "updated": "2026-07-30",
+   "now": "The first level is playable: plant, water, wait. Paused while the art style is reconsidered.",
+   "nextStep": "Try the two-color palette on level one.",
+   "calls": [],
+   "server": null,
+   "shelf": "resting",
+   "rank": 5
+  },
+  {
+   "id": "essay-on-maps",
+   "name": "Essay on Maps",
+   "folder": "Writing/essay-on-maps",
+   "kind": "essay",
+   "summary": "An essay on hand-drawn maps and what they leave out.",
+   "status": "waiting",
+   "lastWorked": "2026-09-21",
+   "updated": "2026-09-22",
+   "now": "Draft two is done and with an editor.",
+   "nextStep": "Fold in the editor's notes, then submit.",
+   "calls": [
+    "Chase the editor's notes if they haven't arrived by 2026-10-10"
+   ],
+   "server": null,
+   "handoff": "Writing/essay-on-maps/HANDOFF.md",
+   "shelf": "resting",
+   "rank": 6
+  },
+  {
+   "id": "star-chart-zine",
+   "name": "Star Chart Zine",
+   "folder": "star-chart-zine",
+   "kind": "zine",
+   "summary": "Issue three of a hand-drawn star chart zine.",
+   "status": "dormant",
+   "lastWorked": "2026-04-11",
+   "updated": "2026-04-11",
+   "now": "Printed and mailed. Nothing planned since.",
+   "nextStep": null,
+   "calls": [],
+   "server": null,
+   "shelf": "archive",
+   "rank": 7
+  }
+ ]
+}

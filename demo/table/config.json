@@ -1,0 +1,7 @@
+{
+ "root": "../projects",
+ "port": 8131,
+ "title": "Light Table",
+ "sessions": "none",
+ "demo": true
+}

@@ -1,14 +1,19 @@
 # Light Table panel (Claude Code, optional, early access)
 
-A row of buttons above the prompt in every Claude Code session:
+One row above the prompt in every Claude Code session.
 
-- the project's name, status, server light (● running / ○ stopped) and next step
-- **Start / Restart server**: asks Claude to start the project's dev server in the browser pane
-- **Add to board** / **Update board**: runs the `light-table-wrap-up` skill (adds this folder, or rewrites its entry)
-- **Open board**: rebuilds the board, starts its server if needed, opens it
-- **Hide**: folds the row down to one small button
+**In a project on the board**, from left to right:
 
-It also restarts a project's dev server by itself when you come back to a session (or send the first message) and the server has stopped.
+- **∴ name**, the server light (● running, ○ stopped) with its port, and the number of decisions waiting on you
+- **Next:** the next step, shortened to fit
+- **Restart** (**Start server** when it's down, the only bright button): asks Claude to start the project's dev server
+- **Update board**: runs the `light-table-wrap-up` skill
+- **Board**: rebuilds the board, starts its server if needed, opens it
+- **Hide**: folds the row down to a small **∴ Light Table**
+
+**In a folder that isn't on the board**, just a small **∴ Add to board**.
+
+It also restarts a project's dev server by itself when you come back to a session (or send the first message) and the server has stopped. Every 20 seconds it checks the server and re-reads the record, so a project you just added shows up without a restart.
 
 **Early access.** The panel uses Claude Code's function-hooks API, which still changes between releases. If an update breaks it, the skills keep working. Turn the panel off and use them by asking ("wrap up", "open my board").
 

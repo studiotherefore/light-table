@@ -7,7 +7,7 @@ auto/<id>.png in the table folder. A page that never settles (maps and video str
 forever) is cut off after a time limit rather than hanging.
 
   python3 snap.py              every project with a running server or a live site
-  python3 snap.py --only tide-clock  one project (the Wrap up button uses this)
+  python3 snap.py --only tide-clock  one project (Update board uses this)
 
 Only writes inside the table folder's auto/.
 """

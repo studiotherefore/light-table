@@ -1,6 +1,6 @@
 ---
 name: light-table-wrap-up
-description: Wrap up this session for Light Table. Use when the user says "wrap up", "update the board", "record where we are" or presses the Wrap up button. Rewrites this project's entry (now, next step, decisions, status), takes a screenshot of the app, and rebuilds the board.
+description: Wrap up this session for Light Table. Use when the user says "wrap up", "update the board", "record where we are" or presses Update board / Add to board. Rewrites this project's entry (now, next step, decisions, status), takes a screenshot of the app, and rebuilds the board.
 ---
 
 # Wrap up for Light Table

@@ -13,7 +13,7 @@
   {
    "name": "light-table-panel",
    "source": "./claude/panel",
-   "description": "Optional, early-access: buttons above the prompt (Start/Restart server, Wrap up, Open board) and automatic dev-server restarts"
+   "description": "Optional, early-access: one row of buttons above the prompt (Restart, Update board, Board) and automatic dev-server restarts"
   }
  ]
 }

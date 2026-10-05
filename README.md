@@ -14,7 +14,7 @@ One dark page at `http://localhost:8130` answers, at a glance: what's active, wh
 
 Your agent keeps it current:
 
-- **Wrap up** at the end of a session: the agent rewrites the project's entry (now, next step, decisions, status) and screenshots the app.
+- **Update board** at the end of a session (or say "wrap up"): the agent rewrites the project's entry (now, next step, decisions, status) and screenshots the app.
 - **Nightly sweep**: finds projects whose files changed, updates just those from their docs and git log, refreshes screenshots, rebuilds the board.
 
 Everything runs on your Mac. Status lives in one file in your own table folder (`~/.light-table/projects.json`); **your project folders are only ever read.**
@@ -41,7 +41,7 @@ In Claude Code:
 
 Then ask: **"Set up Light Table."** The agent asks which folder holds your projects, reads each one's README / CLAUDE.md / handoff notes, drafts an entry for each (anything it guessed is marked "unconfirmed"), lets you correct the list, and opens the board.
 
-Optional: **buttons above the prompt** (Start/Restart server, Add to board / Update board, Open board) and automatic dev-server restarts. This uses an early-access Claude Code API that still changes. See [claude/panel/README.md](claude/panel/README.md).
+Optional: **one row of buttons above the prompt** (Restart, Update board, Board, Hide) and automatic dev-server restarts. This uses an early-access Claude Code API that still changes. See [claude/panel/README.md](claude/panel/README.md).
 
 ## Install for Codex
 
@@ -56,7 +56,7 @@ Then, in Codex: **"Set up Light Table."** See [codex/README.md](codex/README.md)
 
 | You want to | Say (or press) |
 |---|---|
-| See the board | "Open my board" (or **Open board**) |
+| See the board | "Open my board" (or **Board**) |
 | Record where a project stands | "Wrap up" (or **Update board**) |
 | Catch up every project now | "Run the Light Table sweep" |
 | Choose a project's cover image | Name an image in its folder `…current….png` |

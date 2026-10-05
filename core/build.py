@@ -114,7 +114,7 @@ def choose_image(p, folder):
 
     1. a file named "...current..." in the project (the owner's pick), unless a
        Wrap up capture is newer
-    2. otherwise the newest of the Wrap up capture (shots/) and the auto-capture (auto/)
+    2. otherwise the newest of the board-update capture (shots/) and the auto-capture (auto/)
     3. last resort: the newest image in a screenshots folder ("older image")
     """
     def newest(paths):
@@ -124,7 +124,7 @@ def choose_image(p, folder):
     shot = newest([table_path("shots", p["id"] + e) for e in (".png", ".jpg", ".jpeg")])
     auto = table_path("auto", p["id"] + ".png")
     current = find_current(folder) if os.path.isdir(folder) else None
-    label = {shot: "wrap up", auto: "auto capture", current: "your pick"}
+    label = {shot: "board update", auto: "auto capture", current: "your pick"}
     pick = newest([current, shot]) if current else newest([shot, auto])
     if pick:
         return pick, label[pick]

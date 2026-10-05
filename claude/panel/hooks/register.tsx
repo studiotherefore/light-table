@@ -22,7 +22,7 @@ let background = ''
 /** Where the board lives. build.py leaves the code's path in <table folder>/core-path. */
 async function loadTable($: any): Promise<Table | null> {
   const script =
-    'H="${LT_FOLDER:-${LIGHT_TABLE_HOME:-$HOME/.light-table}}"; H="${H/#\~/$HOME}"; [ -f "$H/core-path" ] && LIGHT_TABLE_HOME="$H" /usr/bin/python3 "$(cat "$H/core-path")/config.py"'
+    'H="${LT_FOLDER:-${LIGHT_TABLE_HOME:-$HOME/.light-table}}"; H="${H/#\\~/$HOME}"; [ -f "$H/core-path" ] && LIGHT_TABLE_HOME="$H" /usr/bin/python3 "$(cat "$H/core-path")/config.py"'
   try {
     const r = await $.process.run(['/bin/sh', '-c', script], { timeoutMs: 10_000, env: { LT_FOLDER: tableFolder } })
     const t = JSON.parse(r.stdout)
@@ -34,6 +34,7 @@ async function loadTable($: any): Promise<Table | null> {
 
 /** The project whose folder holds the session's working directory (longest match wins). */
 async function findProject($: any): Promise<Project | null> {
+  if (!table) table = await loadTable($)
   if (!table?.root) return null
   const root = table.root
   const cwd: string = await $.session.cwd()
@@ -49,16 +50,12 @@ async function findProject($: any): Promise<Project | null> {
   return hits[0] ?? null
 }
 
-async function isListening($: any, port: number): Promise<boolean> {
-  const r = await $.process.run(['/usr/sbin/lsof', '-nP', `-iTCP:${port}`, '-sTCP:LISTEN', '-t'], { timeoutMs: 5000 })
-  return r.stdout.trim() !== ''
-}
-
 /** Whether something is listening on the project's port. */
 async function checkServer($: any, p: Project | null): Promise<ServerState> {
   if (!p?.server?.port) return 'none'
   try {
-    return (await isListening($, p.server.port)) ? 'up' : 'down'
+    const r = await $.process.run(['/usr/sbin/lsof', '-nP', `-iTCP:${p.server.port}`, '-sTCP:LISTEN', '-t'], { timeoutMs: 5000 })
+    return r.stdout.trim() ? 'up' : 'down'
   } catch {
     return 'unknown'
   }
@@ -82,13 +79,30 @@ function restartText(p: Project): string {
   return `Restart the ${p.name} preview: ${how}, then confirm it loads (port ${s.port}). Keep it brief.`
 }
 
-const wrapText = () =>
-  `Wrap up this session for Light Table: run the light-table-wrap-up skill` +
-  (table ? ` (table folder: ${table.home}; run its scripts with LIGHT_TABLE_HOME set to that).` : '.')
+/** The message the Add to board / Update board button sends. */
+function wrapText(): string {
+  return (
+    `Update Light Table for this session: run the light-table-wrap-up skill` +
+    (table ? ` (table folder: ${table.home}; run its scripts with LIGHT_TABLE_HOME set to that).` : '.')
+  )
+}
+
+/**
+ * Hand a message to Claude from a button. Doesn't wait for it to be delivered:
+ * a busy or just-waking session takes it when it's free, and a press that waits
+ * can fail before then. Says so right away, and again if it's refused.
+ */
+function sendToClaude($: any, text: string, notice: string) {
+  $.ui.toast(notice)
+  void Promise.resolve($.prompt.submit({ text }))
+    .then((r: any) => { if (r && r.drop !== undefined) $.ui.toast(`Light Table: that didn't go through (${r.drop ?? 'refused'}).`) })
+    .catch((err: any) => { try { $.ui.toast(`Light Table: couldn't send that to Claude. ${err?.message ?? ''}`.trim()) } catch {} })
+}
 
 export const register: Register = (on, options) => {
   tableFolder = String(options.tableFolder ?? '')
   background = String(options.background ?? '')
+
   on('session.start', async ($, e, next) => {
     const ran = await next(e)
     const { p, s } = await refresh($)
@@ -102,7 +116,9 @@ export const register: Register = (on, options) => {
     // you're away: the desktop app stops preview servers on purpose when a
     // session sits idle.
     $.clock.every(20_000, async () => {
-      const cur = await read($, project)
+      // Re-read the record too, so Add to board / Update board show up here without a restart.
+      const cur = await findProject($)
+      if (JSON.stringify(cur) !== JSON.stringify(await read($, project))) await update($, project, () => cur)
       const st = await checkServer($, cur)
       if (st === 'up') hasAskedRestart = false
       await update($, server, () => st)
@@ -144,40 +160,40 @@ export const register: Register = (on, options) => {
     const collapsed = await read($, isCollapsed)
 
     const openBoard = async () => {
-      if (!table) table = await loadTable($)
-      if (!table) {
-        $.ui.toast('Light Table isn’t set up yet. Ask: “set up Light Table”.')
-        return
-      }
       $.ui.toast('Opening the board…')
-      // open.py rebuilds the page, starts its server if needed and opens the browser.
-      const r = await $.process.run(['/usr/bin/python3', `${table.core}/open.py`], { timeoutMs: 90_000, env: { LIGHT_TABLE_HOME: table.home } })
-      if (r.exitCode !== 0) $.ui.toast((r.stderr || r.stdout).trim().split('\n').pop() || 'The board didn’t open.')
+      try {
+        if (!table) table = await loadTable($)
+        if (!table) {
+          $.ui.toast('Light Table isn’t set up yet. Ask: “set up Light Table”.')
+          return
+        }
+        // open.py rebuilds the page, starts its server if needed and opens the browser.
+        const r = await $.process.run(['/usr/bin/python3', `${table.core}/open.py`], { timeoutMs: 90_000, env: { LIGHT_TABLE_HOME: table.home } })
+        if (r.exitCode !== 0) $.ui.toast(`Light Table: ${(r.stderr || r.stdout).trim().split('\n').pop() || 'the board didn’t open.'}`)
+      } catch (err: any) {
+        $.ui.toast(`Light Table: couldn't open the board. ${err?.message ?? ''}`.trim())
+      }
     }
     const restart = async () => {
       const cur = await read($, project)
       if (!cur?.server) return
       hasAskedRestart = true
-      await $.prompt.submit({ text: restartText(cur) })
+      sendToClaude($, restartText(cur), `Restarting ${cur.name}'s server…`)
     }
     const wrap = async () => {
       const cur = await read($, project)
-      $.ui.toast(cur ? `Updating ${cur.name} on the board…` : 'Adding this folder to the board…')
-      await $.prompt.submit({ text: wrapText() })
-    }
-    const restartWithNotice = async () => {
-      const cur = await read($, project)
-      if (cur?.server) $.ui.toast(`Restarting ${cur.name}'s server…`)
-      await restart()
+      sendToClaude($, wrapText(), cur ? `Updating ${cur.name} on the board…` : 'Adding this folder to the board…')
     }
 
-    // Draw this row, then whatever other plugins put above the prompt (another
-    // panel, a survey) underneath, so neither hides the other.
+    // Draw this row, then whatever other plugins put above the prompt underneath,
+    // so neither hides the other. No gap between the two: the app's own slot comes
+    // back as an empty element when nothing else is above the prompt, and a gap
+    // would turn it into a blank line.
     const below = await next(e)
     const stack = (row: any) => (
-      <Box flexDirection="column" gap={1}>
+      <Box flexDirection="column">
         {background ? (
-          <Box flexDirection="column" backgroundColor={background} paddingX={1} paddingY={1}>
+          <Box flexDirection="column" backgroundColor={background} paddingX={1}>
             {row}
           </Box>
         ) : (
@@ -190,30 +206,47 @@ export const register: Register = (on, options) => {
     if (collapsed) {
       return stack(
         <Box flexDirection="row" gap={1}>
-          <Button key="expand" label="∴ Light Table" plain dimColor onPress={() => update($, isCollapsed, () => false)} />
+          <Button key="expand" label={"∴ Light Table"} plain dimColor onPress={() => update($, isCollapsed, () => false)} />
         </Box>
       )
     }
 
-    const light = s === 'up' ? '● running' : s === 'down' ? '○ stopped' : s === 'none' ? '' : '… checking'
-    const decisions = p?.calls?.length ?? 0
+    // Folders that aren't on the board: stay quiet, one small way to add it.
+    if (!p) {
+      return stack(
+        <Box flexDirection="row" gap={1}>
+          <Button key="wrap" label={"∴ Add to board"} plain dimColor onPress={wrap} />
+        </Box>
+      )
+    }
+
+    // A project: one line. Who/where on the left (next step trimmed to fit), buttons on the right.
+    const light = s === 'up' ? '●' : s === 'down' ? '○' : '…'
+    const decisions = p.calls?.length ?? 0
 
     return stack(
-      <Box flexDirection="column">
-        <Box flexDirection="row" gap={1}>
-          <Text bold>∴ {p ? p.name : 'Light Table'}</Text>
-          {p && <Text dimColor>· {p.status}</Text>}
-          {p?.server && <Text color={s === 'up' ? 'green' : s === 'down' ? 'yellow' : undefined} dimColor={s !== 'up' && s !== 'down'}>· :{p.server.port} {light}</Text>}
-          {decisions > 0 && <Text color="yellow">· {decisions} decision{decisions === 1 ? '' : 's'}</Text>}
-        </Box>
-        {p?.nextStep && <Text dimColor>Next: {p.nextStep}</Text>}
-        {!p && <Text dimColor>This folder isn't on the board yet. Wrap up adds it.</Text>}
-        <Box flexDirection="row" gap={1}>
-          {p?.server && (
-            <Button key="restart" label={s === 'up' ? 'Restart server' : 'Start server'} variant={s === 'down' ? 'primary' : 'secondary'} onPress={restartWithNotice} />
+      <Box flexDirection="row" gap={2} alignItems="center" justifyContent="space-between">
+        {/* Name, light and count keep their size; only the next step gives way. */}
+        <Box flexDirection="row" gap={2} flexGrow={1} flexShrink={1} minWidth={0} alignItems="center">
+          <Box flexShrink={0}><Text bold wrap="truncate">∴{" "}{p.name}</Text></Box>
+          {p.server && (
+            <Box flexShrink={0}>
+              <Text wrap="truncate" color={s === 'up' ? 'green' : s === 'down' ? 'yellow' : undefined} dimColor={s !== 'up' && s !== 'down'}>{light}{" "}:{p.server.port}</Text>
+            </Box>
           )}
-          <Button key="wrap" label={p ? 'Update board' : 'Add to board'} variant={s === 'down' ? 'secondary' : 'primary'} onPress={wrap} />
-          <Button key="board" label="Open board" onPress={openBoard} />
+          {decisions > 0 && (
+            <Box flexShrink={0}><Text wrap="truncate" color="yellow">{decisions} decision{decisions === 1 ? '' : 's'}</Text></Box>
+          )}
+          {p.nextStep && (
+            <Box flexShrink={1} minWidth={0}><Text dimColor wrap="truncate">Next: {p.nextStep}</Text></Box>
+          )}
+        </Box>
+        <Box flexDirection="row" gap={1} flexShrink={0}>
+          {p.server && (
+            <Button key="restart" label={s === 'up' ? 'Restart' : 'Start server'} variant={s === 'down' ? 'primary' : 'secondary'} onPress={restart} />
+          )}
+          <Button key="wrap" label="Update board" variant="secondary" onPress={wrap} />
+          <Button key="board" label="Board" onPress={openBoard} />
           <Button key="hide" label="Hide" dimColor onPress={() => update($, isCollapsed, () => true)} />
         </Box>
       </Box>

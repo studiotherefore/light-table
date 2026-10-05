@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Find what the Studio Board's record is missing. Read-only.
+"""Find what the board's record is missing. Read-only.
 
 Prints JSON:
   changed    projects whose files changed after their status was last written,
@@ -19,6 +19,17 @@ import sys
 from build import newest_mtime
 from config import HOME, IGNORE_TOP, RECORD, ROOT, SKIP_DIRS, require_root
 DOC_EXT = (".md", ".txt")
+# Files that mark a folder as a project in its own right (rather than a group of projects).
+MARKERS = ("README", "CLAUDE.md", "AGENTS.md", "HANDOFF", "package.json", "pyproject.toml",
+           "Cargo.toml", "go.mod", "Package.swift", ".git", ".claude", "index.html", "Makefile")
+
+
+def is_project(folder):
+    try:
+        names = os.listdir(folder)
+    except OSError:
+        return False
+    return any(n.startswith(m) for n in names for m in MARKERS) or any(n.endswith(".xcodeproj") for n in names)
 
 
 def day(ts):
@@ -80,8 +91,9 @@ def main():
         if top in IGNORE_TOP or top.startswith(".") or not os.path.isdir(tp):
             continue
         # a top folder that is itself a project, or a group of projects one level down
-        kids = [os.path.join(tp, k) for k in sorted(os.listdir(tp))
-                if os.path.isdir(os.path.join(tp, k)) and not k.startswith(".") and k not in IGNORE_TOP and k not in SKIP_DIRS]
+        kids = [] if is_project(tp) else [
+            os.path.join(tp, k) for k in sorted(os.listdir(tp))
+            if os.path.isdir(os.path.join(tp, k)) and not k.startswith(".") and k not in IGNORE_TOP and k not in SKIP_DIRS]
         for f in [tp] + kids:
             if any(f == c or f.startswith(c + os.sep) for c in covered):
                 continue

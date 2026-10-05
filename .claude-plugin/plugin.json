@@ -1,0 +1,15 @@
+{
+ "name": "light-table",
+ "version": "0.1.0",
+ "description": "A local board of all your projects: setup, Wrap up, nightly sweep and open-the-board skills",
+ "license": "MIT",
+ "keywords": [
+  "dashboard",
+  "projects",
+  "status",
+  "board"
+ ],
+ "author": {
+  "name": "studiotherefore"
+ }
+}

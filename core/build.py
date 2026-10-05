@@ -189,6 +189,9 @@ def main():
         html = fh.read()
     payload = json.dumps(data, indent=1).replace("</", "<\\/")
     html = html.replace("/*__STUDIO_DATA__*/null", payload)
+    # Where the code is, for the Claude Code panel (plugin updates move it).
+    with open(table_path("core-path"), "w") as fh:
+        fh.write(CORE)
     with open(table_path("dashboard.html"), "w") as fh:
         fh.write(html)
     print("wrote dashboard.html with", len(data["projects"]), "projects")

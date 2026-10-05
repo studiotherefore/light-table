@@ -1,0 +1,9 @@
+{
+ "name": "light-table-panel",
+ "version": "0.1.0",
+ "description": "Light Table buttons above the prompt: start or restart this project's server, Wrap up, open the board",
+ "types": "./types/index.d.ts",
+ "author": {
+  "name": "studiotherefore"
+ }
+}

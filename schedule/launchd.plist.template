@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Light Table nightly sweep at 23:00. Replace REPO, HOME and AGENT (claude or codex),
+     save as ~/Library/LaunchAgents/com.lighttable.sweep.plist, then:
+     launchctl load ~/Library/LaunchAgents/com.lighttable.sweep.plist -->
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.lighttable.sweep</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/sh</string>
+    <string>REPO/schedule/run-sweep.sh</string>
+    <string>AGENT</string>
+  </array>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key><string>HOME/.local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+  </dict>
+  <key>StartCalendarInterval</key>
+  <dict><key>Hour</key><integer>23</integer><key>Minute</key><integer>0</integer></dict>
+  <key>StandardErrorPath</key><string>HOME/.light-table/launchd.err</string>
+</dict>
+</plist>

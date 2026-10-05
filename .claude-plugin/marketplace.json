@@ -1,0 +1,19 @@
+{
+ "name": "light-table",
+ "description": "Light Table: a local board of all your projects, kept current by your agent",
+ "owner": {
+  "name": "studiotherefore"
+ },
+ "plugins": [
+  {
+   "name": "light-table",
+   "source": "./",
+   "description": "Skills: set up the board, Wrap up a session, nightly sweep, open the board"
+  },
+  {
+   "name": "light-table-panel",
+   "source": "./claude/panel",
+   "description": "Optional, early-access: buttons above the prompt (Start/Restart server, Wrap up, Open board) and automatic dev-server restarts"
+  }
+ ]
+}

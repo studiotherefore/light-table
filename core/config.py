@@ -6,12 +6,14 @@ Two folders matter:
   the code   this core/ folder: scripts, template.html, icons/
   the table  your board's own folder: config.json, projects.json (the record),
              and what the scripts generate there (dashboard.html, shots/,
-             auto/, thumbs/). It is $LIGHT_TABLE_HOME, or ~/.light-table.
+             auto/, thumbs/, and core-path, which tells the Claude Code panel
+             where this code is). It is $LIGHT_TABLE_HOME, or ~/.light-table.
 
 config.json (see config.example.json):
   root          the folder that holds your projects (required; may be relative
                 to the table folder, and may start with ~)
   port          the board's localhost port (default 8130)
+  title         the name at the top of the board (default "Light Table")
   chrome        the browser used for auto-captures
   sessions      whose sessions project titles open: "auto", "claude", "codex" or "none"
   skipDirs      extra folder names never scanned (node_modules etc. are built in)

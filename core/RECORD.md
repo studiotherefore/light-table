@@ -17,14 +17,14 @@ See `projects.example.json` for a filled-in example.
 | `folder` | setup / agent | Path relative to the projects root. |
 | `kind` | setup / agent | A few words: "web app", "audio archive", "game prototype". |
 | `summary` | setup / agent | One sentence on what the project is. |
-| `status` | agent | `active` (worked on in the last ~3 weeks, clear next step) · `waiting` (next step is blocked on the owner) · `paused` (stopped with a plan) · `dormant` (60+ days untouched, nothing stated). |
+| `status` | agent | `active`: worked on in the last ~3 weeks. `waiting`: the next step is blocked on the owner or on someone else (the `calls` say who). `paused`: work stopped with a plan. `dormant`: 60+ days untouched with nothing stated. A guessed status gets "(status unconfirmed)" at the end of `now`. |
 | `lastWorked` | agent | Date of the newest commit or file change (YYYY-MM-DD). |
 | `updated` | agent | Date this entry was last written. The sweep compares it with file changes. |
 | `updatedBy` | agent | Optional: "wrap up", "nightly sweep", "setup". |
 | `now` | agent | One or two plain sentences on where things stand. |
 | `nextStep` | agent | The single concrete next step, or `null`. |
-| `calls` | agent | Decisions only the owner can make, people to contact, deadlines. Short instructions to the owner ("Choose…", "Approve…", "Try…"). Resolved ones are removed. |
-| `server` | setup / agent | `{"config": <name>, "port": <n>, "launchJson": <path or null>}` for a project with a local dev server, else `null`. `config` is the launch configuration name, or the command when there's no launch file. |
+| `calls` | agent | Decisions only the owner can make, people to contact, deadlines. Short instructions to the owner ("Choose…", "Approve…", "Try…"). Dates with the year (2026-10-20), so they stay right next year. Resolved ones are removed. |
+| `server` | setup / agent | `{"config": <name>, "port": <n>, "launchJson": <path or null>}` for a project with a local dev server, else `null`. With a `.claude/launch.json`: `config` is the configuration name and `launchJson` its path relative to the root. Without one: `config` is the start command (e.g. `npm run dev`) and `launchJson` is `null`. |
 | `localUrl` | setup / agent | The dev server's URL, e.g. `http://localhost:5173/`. |
 | `liveUrl` | setup / agent | The deployed site, if any. |
 | `handoff` | setup / agent | Path (relative to the root) of the project's main handoff/notes file, if any. The board's Notes button opens it. |

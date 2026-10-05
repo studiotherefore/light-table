@@ -14,13 +14,15 @@ const isCollapsed = atom({ plugin: 'light-table-panel', key: 'isCollapsed' } as 
 // as the server is seen running again, so the next outage gets its own restart.
 let hasAskedRestart = false
 let table: Table | null = null
+// The "Table folder" setting; empty means $LIGHT_TABLE_HOME or ~/.light-table.
+let tableFolder = ''
 
 /** Where the board lives. build.py leaves the code's path in <table folder>/core-path. */
 async function loadTable($: any): Promise<Table | null> {
   const script =
-    'H="${LIGHT_TABLE_HOME:-$HOME/.light-table}"; [ -f "$H/core-path" ] && /usr/bin/python3 "$(cat "$H/core-path")/config.py"'
+    'H="${LT_FOLDER:-${LIGHT_TABLE_HOME:-$HOME/.light-table}}"; H="${H/#\~/$HOME}"; [ -f "$H/core-path" ] && LIGHT_TABLE_HOME="$H" /usr/bin/python3 "$(cat "$H/core-path")/config.py"'
   try {
-    const r = await $.process.run(['/bin/sh', '-c', script], { timeoutMs: 10_000 })
+    const r = await $.process.run(['/bin/sh', '-c', script], { timeoutMs: 10_000, env: { LT_FOLDER: tableFolder } })
     const t = JSON.parse(r.stdout)
     return t.root ? t : null
   } catch {
@@ -78,9 +80,12 @@ function restartText(p: Project): string {
   return `Restart the ${p.name} preview: ${how}, then confirm it loads (port ${s.port}). Keep it brief.`
 }
 
-const WRAP_TEXT = 'Wrap up this session for Light Table: run the light-table-wrap-up skill.'
+const wrapText = () =>
+  `Wrap up this session for Light Table: run the light-table-wrap-up skill` +
+  (table ? ` (table folder: ${table.home}; run its scripts with LIGHT_TABLE_HOME set to that).` : '.')
 
-export const register: Register = on => {
+export const register: Register = (on, options) => {
+  tableFolder = String(options.tableFolder ?? '')
   on('session.start', async ($, e, next) => {
     const ran = await next(e)
     const { p, s } = await refresh($)
@@ -143,7 +148,7 @@ export const register: Register = on => {
       }
       $.ui.toast('Opening the board…')
       // open.py rebuilds the page, starts its server if needed and opens the browser.
-      const r = await $.process.run(['/usr/bin/python3', `${table.core}/open.py`], { timeoutMs: 90_000 })
+      const r = await $.process.run(['/usr/bin/python3', `${table.core}/open.py`], { timeoutMs: 90_000, env: { LIGHT_TABLE_HOME: table.home } })
       if (r.exitCode !== 0) $.ui.toast((r.stderr || r.stdout).trim().split('\n').pop() || 'The board didn’t open.')
     }
     const restart = async () => {
@@ -153,7 +158,7 @@ export const register: Register = on => {
       await $.prompt.submit({ text: restartText(cur) })
     }
     const wrap = async () => {
-      await $.prompt.submit({ text: WRAP_TEXT })
+      await $.prompt.submit({ text: wrapText() })
     }
 
     if (collapsed) {

@@ -5,5 +5,13 @@
  "types": "./types/index.d.ts",
  "author": {
   "name": "studiotherefore"
+ },
+ "userConfig": {
+  "tableFolder": {
+   "type": "string",
+   "title": "Table folder",
+   "description": "Where your Light Table record lives. Leave empty for ~/.light-table (or $LIGHT_TABLE_HOME).",
+   "default": ""
+  }
  }
 }

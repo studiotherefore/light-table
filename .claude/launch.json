@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "light-table-demo",
+      "runtimeExecutable": "/bin/sh",
+      "runtimeArgs": ["-c", "export LIGHT_TABLE_HOME=\"$PWD/demo/table\" && python3 core/build.py && exec python3 core/server.py"],
+      "port": 8131
+    }
+  ]
+}

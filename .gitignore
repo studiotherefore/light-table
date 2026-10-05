@@ -16,3 +16,4 @@ server.log
 !demo/table/projects.json
 core-path
 sweep.log
+.claude/settings.local.json

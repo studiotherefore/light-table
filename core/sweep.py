@@ -91,9 +91,12 @@ def main():
         if top in IGNORE_TOP or top.startswith(".") or not os.path.isdir(tp):
             continue
         # a top folder that is itself a project, or a group of projects one level down
-        kids = [] if is_project(tp) else [
-            os.path.join(tp, k) for k in sorted(os.listdir(tp))
-            if os.path.isdir(os.path.join(tp, k)) and not k.startswith(".") and k not in IGNORE_TOP and k not in SKIP_DIRS]
+        # (a group when any subfolder is a project or already on the board; then judge
+        # the subfolders, never the group itself)
+        kids = [os.path.join(tp, k) for k in sorted(os.listdir(tp))
+                if os.path.isdir(os.path.join(tp, k)) and not k.startswith(".") and k not in IGNORE_TOP and k not in SKIP_DIRS]
+        if not any(is_project(k) or any(c == k or c.startswith(k + os.sep) for c in covered) for k in kids):
+            kids = []
         for f in [tp] + kids:
             if any(f == c or f.startswith(c + os.sep) for c in covered):
                 continue

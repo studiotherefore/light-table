@@ -12,6 +12,12 @@
    "title": "Table folder",
    "description": "Where your Light Table record lives. Leave empty for ~/.light-table (or $LIGHT_TABLE_HOME).",
    "default": ""
+  },
+  "background": {
+   "type": "string",
+   "title": "Background",
+   "description": "A color behind the panel, e.g. #26282e on a dark theme. Leave empty for none.",
+   "default": ""
   }
  }
 }

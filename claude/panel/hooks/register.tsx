@@ -16,6 +16,8 @@ let hasAskedRestart = false
 let table: Table | null = null
 // The "Table folder" setting; empty means $LIGHT_TABLE_HOME or ~/.light-table.
 let tableFolder = ''
+// The "Background" setting: a color behind the panel's row, or none.
+let background = ''
 
 /** Where the board lives. build.py leaves the code's path in <table folder>/core-path. */
 async function loadTable($: any): Promise<Table | null> {
@@ -86,6 +88,7 @@ const wrapText = () =>
 
 export const register: Register = (on, options) => {
   tableFolder = String(options.tableFolder ?? '')
+  background = String(options.background ?? '')
   on('session.start', async ($, e, next) => {
     const ran = await next(e)
     const { p, s } = await refresh($)
@@ -166,7 +169,13 @@ export const register: Register = (on, options) => {
     const below = await next(e)
     const stack = (row: any) => (
       <Box flexDirection="column" gap={1}>
-        {row}
+        {background ? (
+          <Box flexDirection="column" backgroundColor={background} paddingX={1} paddingY={1}>
+            {row}
+          </Box>
+        ) : (
+          row
+        )}
         {below}
       </Box>
     )

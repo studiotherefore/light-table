@@ -21,6 +21,8 @@ Needs the `light-table` plugin from the same marketplace (for the Wrap up skill)
 /plugin install light-table-panel@light-table
 ```
 
+Settings: **Table folder** (where your board lives, if not `~/.light-table`) and **Background** (a color behind the row, e.g. `#26282e` on a dark theme).
+
 Or load it straight from a clone, for every session, in `~/.claude/settings.json`:
 
 ```json

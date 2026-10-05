@@ -52,6 +52,54 @@ class Claude:
         return {"url": "claude://code/new?folder=" + quote(folder, safe="") + "&source=light-table"}
 
 
+CODEX_DIR = os.path.expanduser("~/.codex")
+
+
+class Codex:
+    """Codex desktop app sessions, opened with codex:// links.
+
+    Each session is a rollout file whose first line ("session_meta") holds its id
+    and working folder; titles are kept separately in session_index.jsonl. Last
+    activity is the rollout file's modification time.
+    """
+    name = "codex"
+
+    def __init__(self):
+        titles = {}
+        try:
+            with open(os.path.join(CODEX_DIR, "session_index.jsonl")) as fh:
+                for line in fh:
+                    try:
+                        row = json.loads(line)
+                        titles[row["id"]] = row.get("thread_name") or ""
+                    except (ValueError, KeyError):
+                        continue
+        except OSError:
+            pass
+        self.sessions = []
+        for f in glob.glob(os.path.join(CODEX_DIR, "sessions", "*", "*", "*", "rollout-*.jsonl")):
+            try:
+                with open(f) as fh:
+                    meta = json.loads(fh.readline()).get("payload") or {}
+                last = os.path.getmtime(f) * 1000
+            except (OSError, ValueError):
+                continue
+            if meta.get("id") and meta.get("cwd"):
+                self.sessions.append({"id": meta["id"], "cwd": meta["cwd"],
+                                      "title": titles.get(meta["id"], ""), "last": last})
+
+    @staticmethod
+    def available():
+        return bool(glob.glob(os.path.join(CODEX_DIR, "sessions", "*", "*", "*", "rollout-*.jsonl")))
+
+    def link(self, folder):
+        hits = [s for s in self.sessions if _inside(s["cwd"], folder)]
+        if hits:
+            s = max(hits, key=lambda s: s["last"])
+            return {"url": "codex://threads/" + quote(s["id"]), "title": s["title"], "last": s["last"]}
+        return {"url": "codex://threads/new?path=" + quote(folder, safe="")}
+
+
 class NoSessions:
     name = "none"
 
@@ -63,7 +111,7 @@ class NoSessions:
         return None
 
 
-PROVIDERS = {"claude": Claude, "none": NoSessions}
+PROVIDERS = {"claude": Claude, "codex": Codex, "none": NoSessions}
 
 
 def provider(choice):

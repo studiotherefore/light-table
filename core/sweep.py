@@ -4,13 +4,17 @@
 Prints JSON:
   changed    projects whose files changed after their status was last written,
              with the docs and git commits that changed since then
-  candidates folders with recent work that no project entry covers
+  candidates folders with recent work (last 30 days) that no project entry covers
 The nightly sweep reads this, then updates projects.json for just those.
+
+  python3 sweep.py         as above
+  python3 sweep.py --all   candidates of any age (first-run setup uses this)
 """
 import datetime
 import json
 import os
 import subprocess
+import sys
 
 from build import newest_mtime
 from config import HOME, IGNORE_TOP, RECORD, ROOT, SKIP_DIRS, require_root
@@ -69,7 +73,7 @@ def main():
 
     # The table folder itself is never a candidate, wherever it lives.
     covered = [os.path.join(ROOT, p["folder"]) for p in data["projects"]] + [os.path.realpath(HOME)]
-    cutoff = (datetime.datetime.now() - datetime.timedelta(days=30)).timestamp()
+    cutoff = 0 if "--all" in sys.argv else (datetime.datetime.now() - datetime.timedelta(days=30)).timestamp()
     candidates = []
     for top in sorted(os.listdir(ROOT)):
         tp = os.path.join(ROOT, top)
@@ -85,7 +89,7 @@ def main():
                 continue
             m = newest_mtime(f)
             if m > cutoff:
-                candidates.append({"folder": os.path.relpath(f, ROOT), "filesChanged": day(m)})
+                candidates.append({"folder": os.path.relpath(f, ROOT), "filesChanged": day(m) if m else None})
 
     print(json.dumps({"today": datetime.date.today().isoformat(), "changed": changed, "candidates": candidates}, indent=1))
 

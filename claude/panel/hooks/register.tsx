@@ -161,8 +161,18 @@ export const register: Register = (on, options) => {
       await $.prompt.submit({ text: wrapText() })
     }
 
+    // Draw this row, then whatever other plugins put above the prompt (another
+    // panel, a survey) underneath, so neither hides the other.
+    const below = await next(e)
+    const stack = (row: any) => (
+      <Box flexDirection="column">
+        {row}
+        {below}
+      </Box>
+    )
+
     if (collapsed) {
-      return (
+      return stack(
         <Box flexDirection="row" gap={1}>
           <Button key="expand" label="∴ Light Table" plain dimColor onPress={() => update($, isCollapsed, () => false)} />
         </Box>
@@ -172,7 +182,7 @@ export const register: Register = (on, options) => {
     const light = s === 'up' ? '● running' : s === 'down' ? '○ stopped' : s === 'none' ? '' : '… checking'
     const decisions = p?.calls?.length ?? 0
 
-    return (
+    return stack(
       <Box flexDirection="column">
         <Box flexDirection="row" gap={1}>
           <Text bold>∴ {p ? p.name : 'Light Table'}</Text>

@@ -18,3 +18,4 @@ core-path
 sweep.log
 .claude/settings.local.json
 places.json
+.studio-sync

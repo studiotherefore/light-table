@@ -28,6 +28,7 @@ See `projects.example.json` for a filled-in example.
 | `localUrl` | setup / agent | The dev server's URL, e.g. `http://localhost:5173/`. |
 | `liveUrl` | setup / agent | The deployed site, if any. |
 | `handoff` | setup / agent | Path (relative to the root) of the project's main handoff/notes file, if any. The board's Notes button opens it. |
+| `app` | setup / agent | Path (relative to the root) of a built `.app`, if the project has one. It may be a link into a build cache. Cards show an **App** button that launches it. |
 | `screenshot` | setup | Optional fallback image path (relative to the root). |
 | `autoCapture` | owner | `false` keeps headless captures off for projects where they only show a loading, login or audio-gate screen. |
 | `sweep` | owner | `false` makes the nightly sweep skip this entry (for example the board's own entry, which you update by hand). |
@@ -37,6 +38,7 @@ See `projects.example.json` for a filled-in example.
 ## Rules every agent follows
 
 - **Never set, change or remove `shelf` or `rank`.** New entries get neither; the board places them by status until the owner drags them.
+- **Run `core/places.py restore` before rebuilding** after any edit to the record. `places.json` in the table folder keeps the owner's placements (the board refreshes it on every drag), and restore puts back anything an edit changed. If the owner asks you in chat to move a card, change its `shelf`/`rank`, then run `core/places.py save`.
 - **Don't invent.** If the project's docs don't say, leave the field as it was (or `null` for a new entry). Append ` (unconfirmed)` to anything inferred rather than read.
 - **Keep every field you aren't updating.**
 - **Write only inside the table folder.** Project folders are read-only: no edits, no commits, no git writes (only `log`, `show`, `status`, `diff`, `branch`).
@@ -46,7 +48,7 @@ See `projects.example.json` for a filled-in example.
 
 The card image is chosen by `build.py`, in this order:
 
-1. A file with `current` in its name anywhere in the project: the owner's pick (unless a Wrap up capture is newer).
+1. A file with `current` in its name anywhere in the project: the owner's pick. It always wins, even over a newer board update or auto capture.
 2. The newer of the Wrap up capture (`shots/<id>.png|jpg`) and the auto-capture (`auto/<id>.png`).
 3. Last resort: the newest image in a folder whose name contains `screenshot`.
 

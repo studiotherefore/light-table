@@ -36,7 +36,7 @@ The full app view as it is now, not a detail.
 
 ## Finish
 
-Run `python3 "$CORE/build.py"`. Then reply with a two-line summary of what you recorded.
+Run `python3 "$CORE/places.py" restore` (it puts back any card placement that changed by accident), then `python3 "$CORE/build.py"`. Then reply with a two-line summary of what you recorded.
 
 ## Hard rules
 

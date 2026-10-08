@@ -86,9 +86,11 @@ def gallery_thumb(src):
     name = "g-" + hashlib.md5(src.encode()).hexdigest()[:12] + ".jpg"
     out = table_path("thumbs", name)
     os.makedirs(os.path.dirname(out), exist_ok=True)
-    if not os.path.exists(out) or os.path.getmtime(out) < os.path.getmtime(src):
+    stamp = os.path.getmtime(src)  # same rule as thumb_data_uri: remake on any change
+    if not os.path.exists(out) or os.path.getmtime(out) != stamp:
         subprocess.run(["sips", "-s", "format", "jpeg", "-s", "formatOptions", "70", "-Z", "720", src, "--out", out],
                        check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        os.utime(out, (stamp, stamp))
     dims = subprocess.run(["sips", "-g", "pixelWidth", "-g", "pixelHeight", out], capture_output=True, text=True).stdout
     w, h = [int(line.split()[-1]) for line in dims.splitlines() if "pixel" in line]
     return f"/thumbs/{name}?v={int(os.path.getmtime(out))}", h > w * 0.85, name
@@ -112,8 +114,8 @@ def find_current(folder):
 def choose_image(p, folder):
     """Pick the card image and say where it came from.
 
-    1. a file named "...current..." in the project (the owner's pick), unless a
-       Wrap up capture is newer
+    1. a file named "...current..." in the project (the owner's pick). It always wins,
+       even over a newer board update or auto capture.
     2. otherwise the newest of the board-update capture (shots/) and the auto-capture (auto/)
     3. last resort: the newest image in a screenshots folder ("older image")
     """
@@ -125,7 +127,7 @@ def choose_image(p, folder):
     auto = table_path("auto", p["id"] + ".png")
     current = find_current(folder) if os.path.isdir(folder) else None
     label = {shot: "board update", auto: "auto capture", current: "your pick"}
-    pick = newest([current, shot]) if current else newest([shot, auto])
+    pick = current or newest([shot, auto])
     if pick:
         return pick, label[pick]
     recorded = os.path.join(ROOT, p["screenshot"]) if p.get("screenshot") else None
@@ -141,10 +143,18 @@ def thumb_data_uri(src, pid):
     """
     out = table_path("thumbs", pid + ".jpg")
     os.makedirs(os.path.dirname(out), exist_ok=True)
-    if not os.path.exists(out) or os.path.getmtime(out) < os.path.getmtime(src):
+    # Remake whenever the source changes: a different file (a renamed or moved pick
+    # keeps its old date), an older one, or the same file edited.
+    st = os.stat(src)
+    key = f"{src}|{st.st_mtime}|{st.st_size}"
+    keyfile = out + ".src"
+    old = open(keyfile).read() if os.path.exists(keyfile) else None
+    if not os.path.exists(out) or old != key:
         subprocess.run(["sips", "-s", "format", "jpeg", "-s", "formatOptions", "70",
                         "-Z", "720", src, "--out", out],
                        check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        with open(keyfile, "w") as fh:
+            fh.write(key)
     with open(out, "rb") as fh:
         return "data:image/jpeg;base64," + base64.b64encode(fh.read()).decode()
 
@@ -191,6 +201,8 @@ def main():
         p["imageDate"] = datetime.date.fromtimestamp(os.path.getmtime(src)).isoformat() if src else None
 
         p["folderUrl"] = "file://" + quote(folder)
+        # A built app the App button launches (may be a link into a build cache).
+        p["appReady"] = bool(p.get("app")) and os.path.isdir(os.path.join(ROOT, p["app"]))
         if p.get("handoff"):
             p["handoffUrl"] = "file://" + quote(os.path.join(ROOT, p["handoff"]))
 

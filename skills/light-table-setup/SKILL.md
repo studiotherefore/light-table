@@ -37,7 +37,7 @@ Keep the user updates short and plain. Ask questions with your question/choice t
    - `status` by RECORD.md: recent work is `active` even without a stated next step; blocked on someone (the owner or another person) is `waiting`.
    - Don't invent. Leave unknowns `null` or empty. Append ` (unconfirmed)` to anything inferred rather than read. Write deadlines with the year.
 7. **Show the user the list**: one line per project (name, status, next step). Ask which to drop or fix. Apply their changes.
-8. **Write the record.** Save the entries into `projects.json`, set its top-level `updated` to today, and check it with `python3 -m json.tool "<record>" >/dev/null`.
+8. **Write the record.** Save the entries into `projects.json`, set its top-level `updated` to today, and check it with `python3 -m json.tool "<record>" >/dev/null`. Then run `python3 "$CORE/places.py" save` to start the placement guard.
 9. **Screenshots (optional).** If Google Chrome is installed, offer to take first screenshots of projects with a live site or a running local server: `python3 "$CORE/snap.py"` (about a minute; failures just keep no image). Projects where it shows only a loading, login or audio-start screen can get `"autoCapture": false`.
 10. **Open the board.** Run `python3 "$CORE/open.py"`. It builds the page, starts the small local server in the background and opens the board in the browser. If you have your own browser view, you can use `--no-open` and show the printed URL there instead.
 11. **Offer the extras**, in one short message, and set up only what they say yes to:

@@ -4,9 +4,9 @@
   GET  /              the board (dashboard.html)
   POST /api/rescan    rebuild the board (new screenshots, dates)
   POST /api/recapture retake auto-captures (snap.py), then rebuild
-  POST /api/open      {"id": ..., "what": "folder"|"handoff"}  open it in Finder / its app
-  POST /api/order     {"ids": [...], "shelves": {id: "motion"|"resting"|"archive"}}
-                      the owner's drag order and placement, saved as rank and shelf
+  POST /api/open      {"id": ..., "what": "folder"|"handoff"|"app"}  open it in Finder / its app, or launch the built app
+  POST /api/order     {"id": ..., "shelf": "motion"|"resting"|"archive", "next": id|null, "after": bool}
+                      the owner dragged one card; saved as rank and shelf, and to places.json
 
 Only ever writes inside the table folder (see config.py). Listens on localhost only.
 """
@@ -17,10 +17,10 @@ import sys
 import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
+import places
 from config import CORE as HERE, HOME, PORT, RECORD, ROOT, require_root, table_path
 
 LOCK = threading.Lock()
-SHELVES = {"motion", "resting", "archive"}
 
 
 def run(script):
@@ -92,6 +92,14 @@ class Handler(BaseHTTPRequestHandler):
                 with open(RECORD) as fh:
                     data = json.load(fh)
                 p = next((x for x in data["projects"] if x["id"] == body.get("id")), None)
+                if body.get("what") == "app":
+                    # Launch the project's built app. It may be a link to a build cache
+                    # outside the folder, so check the record's path, not where it points.
+                    app = os.path.normpath(os.path.join(ROOT, p["app"])) if p and p.get("app") else None
+                    if not app or not app.startswith(ROOT + os.sep) or not app.endswith(".app") or not os.path.isdir(app):
+                        return self.reply(404, {"error": "app not found"})
+                    subprocess.run(["/usr/bin/open", app], timeout=10)
+                    return self.reply(200, {"ok": True})
                 rel = p and (p.get("handoff") if body.get("what") == "handoff" else p.get("folder"))
                 path = os.path.realpath(os.path.join(ROOT, rel)) if rel else None
                 if not path or not path.startswith(ROOT + os.sep) or not os.path.exists(path):
@@ -99,23 +107,17 @@ class Handler(BaseHTTPRequestHandler):
                 subprocess.run(["/usr/bin/open", path], timeout=10)
                 return self.reply(200, {"ok": True})
             if self.path == "/api/order":
-                # The owner's priority: rank = position in the list they dragged into place.
-                ids = [i for i in body.get("ids", []) if isinstance(i, str)]
+                # The owner dragged one card. Place it against the record as it is now,
+                # so a page loaded before other changes can't reorder the rest.
                 with open(RECORD) as fh:
                     data = json.load(fh)
-                pos = {pid: n for n, pid in enumerate(ids)}
-                shelves = body.get("shelves") or {}
-                for p in data["projects"]:
-                    if p["id"] in pos:
-                        p["rank"] = pos[p["id"]]
-                    if shelves.get(p["id"]) in SHELVES:
-                        p["shelf"] = shelves[p["id"]]
-                tmp = RECORD + ".tmp"
-                with open(tmp, "w") as fh:
-                    json.dump(data, fh, indent=1, ensure_ascii=False)
-                os.replace(tmp, RECORD)
+                ids = places.move(data, body.get("id"), body.get("shelf"), body.get("next"), bool(body.get("after")))
+                if ids is None:
+                    return self.reply(400, {"error": "unknown card or shelf"})
+                places.write(RECORD, data)
+                places.save(data)
                 r = run("build.py")
-                return self.reply(200, {"ok": r.returncode == 0})
+                return self.reply(200, {"ok": r.returncode == 0, "ids": ids})
         self.reply(404, {"error": "not found"})
 
 

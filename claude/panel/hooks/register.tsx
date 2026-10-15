@@ -174,6 +174,17 @@ export const register: Register = (on, options) => {
         $.ui.toast(`Light Table: couldn't open the board. ${err?.message ?? ''}`.trim())
       }
     }
+    // The green :port opens the project's local page in the default browser.
+    const openLocal = async () => {
+      const cur = await read($, project)
+      if (!cur?.server) return
+      const url = cur.localUrl || `http://localhost:${cur.server.port}/`
+      try {
+        await $.process.run(['/usr/bin/open', url])
+      } catch (err: any) {
+        $.ui.toast(`Light Table: couldn't open ${url}. ${err?.message ?? ''}`.trim())
+      }
+    }
     const restart = async () => {
       const cur = await read($, project)
       if (!cur?.server) return
@@ -221,7 +232,7 @@ export const register: Register = (on, options) => {
     }
 
     // A project: one line. Who/where on the left (next step trimmed to fit), buttons on the right.
-    const light = s === 'up' ? '●' : s === 'down' ? '○' : '…'
+    const light = s === 'up' ? '•' : s === 'down' ? '◦' : '…'
     const decisions = p.calls?.length ?? 0
 
     return stack(
@@ -231,11 +242,13 @@ export const register: Register = (on, options) => {
           <Box flexShrink={0}><Text bold wrap="truncate">∴{" "}{p.name}</Text></Box>
           {p.server && (
             <Box flexShrink={0}>
-              <Text wrap="truncate" color={s === 'up' ? 'green' : s === 'down' ? 'yellow' : undefined} dimColor={s !== 'up' && s !== 'down'}>{light}{" "}:{p.server.port}</Text>
+              <Button key="local" plain onPress={openLocal}>
+                <Text wrap="truncate" color={s === 'up' ? 'green' : s === 'down' ? 'yellow' : undefined} dimColor={s !== 'up' && s !== 'down'}>{light}{" "}:{p.server.port}</Text>
+              </Button>
             </Box>
           )}
           {decisions > 0 && (
-            <Box flexShrink={0}><Text wrap="truncate" color="yellow">{decisions} decision{decisions === 1 ? '' : 's'}</Text></Box>
+            <Box flexShrink={0}><Text wrap="truncate" color="#8a80c0">{decisions} decision{decisions === 1 ? '' : 's'}</Text></Box>
           )}
           {p.nextStep && (
             <Box flexShrink={1} minWidth={0}><Text dimColor wrap="truncate">Next: {p.nextStep}</Text></Box>

@@ -6,6 +6,7 @@ export type Project = {
   nextStep: string | null
   calls: string[]
   server: { config: string; port: number; launchJson: string | null } | null
+  localUrl?: string | null
 }
 
 export type ServerState = 'none' | 'up' | 'down' | 'unknown'

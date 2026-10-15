@@ -4,7 +4,7 @@ One row above the prompt in every Claude Code session.
 
 **In a project on the board**, from left to right:
 
-- **∴ name**, the server light (● running, ○ stopped) with its port, and the number of decisions waiting on you
+- **∴ name**, the server light (• running, ◦ stopped) with its port (click it to open the local page), and the number of decisions waiting on you
 - **Next:** the next step, shortened to fit
 - **Restart** (**Start server** when it's down, the only bright button): asks Claude to start the project's dev server
 - **Update board**: runs the `light-table-wrap-up` skill

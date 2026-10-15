@@ -26,7 +26,7 @@ The scripts are in `core/`, two folders up from this skill's folder (`<this skil
 3. For each project in `changed`, read what changed: the listed docs (newest first; for long dated handoff files only the newest entries), the commits, and the entry's `handoff` file if it changed. Then update that entry:
    - `now`: one or two plain sentences on where it stands.
    - `nextStep`: the single concrete next step as the project's docs state it. If work is built on a branch but not merged, say so: "try it and okay the merge" is often the real next step.
-   - `calls`: decisions only the owner can make, people to contact, deadlines, written as instructions ("Choose…", "Approve…", "Try…"). Remove ones the docs or commits show are resolved; keep open ones.
+   - `calls`: decisions only the owner can make, people to contact, deadlines, written as instructions ("Choose…", "Approve…", "Try…"). Keep a call only while the project's current docs (the handoff's open items, next steps, questions for the owner) still ask for it, or git shows it still pending. Remove calls the docs or commits show are resolved, and calls the current docs no longer mention: don't carry a call forward just because nothing says it's done. Check what git can answer yourself (e.g. "okay the push": is the branch ahead of its remote?).
    - `status`: active / waiting / paused / dormant, as defined in RECORD.md.
    - `lastWorked`: the newest commit or file-change date. `updated`: today. `updatedBy`: `"nightly sweep"`.
    - If an entry has `"missing": true`, don't delete it: set `now` to "Folder not found at <folder>; moved or renamed?" and add the call "Check where <name> went".

@@ -21,7 +21,7 @@ From what happened in this session (and the project's own docs if needed):
 
 - `now`: one or two sentences on where things stand after this session.
 - `nextStep`: the single concrete next step.
-- `calls`: decisions only the owner can make, people to contact, deadlines. Short and actionable. Drop ones that are resolved.
+- `calls`: decisions only the owner can make, people to contact, deadlines. Short and actionable. Keep only ones still open now: drop resolved ones and any the project's current notes no longer ask for.
 - `status`: `active` | `waiting` | `paused` | `dormant` (see RECORD.md).
 - `lastWorked` and `updated`: today. `updatedBy`: `"wrap up"`. Also set the record's top-level `updated` to today.
 - Keep every other field as it is. Check the file is valid JSON afterwards (`python3 -m json.tool "<record>" >/dev/null`).

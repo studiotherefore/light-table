@@ -4,9 +4,9 @@ One row above the prompt in every Claude Code session.
 
 **In a project on the board**, from left to right:
 
-- **∴ name**, the server light (• running, ◦ stopped) with its port (click it to open the local page), and the number of decisions waiting on you
+- **∴ name** and the number of decisions waiting on you
 - **Next:** the next step, shortened to fit
-- **Restart** (**Start server** when it's down, the only bright button): asks Claude to start the project's dev server
+- **Open**, **App**, **Local**, **Live**: one button per way into the project, each shown only when the project has it. **Open** opens the record's hand-set `open`, **App** launches the built app, **Live** opens the deployed site. **Local** opens the local page; while its server is down it's the bright button, and pressing it asks Claude to start the server and opens the page once it answers
 - **Update board**: runs the `light-table-wrap-up` skill
 - **Board**: rebuilds the board, starts its server if needed, opens it
 - **Hide**: folds the row down to a small **∴ Light Table**

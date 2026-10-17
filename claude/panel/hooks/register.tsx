@@ -8,6 +8,7 @@ type Table = { core: string; home: string; record: string; root: string | null; 
 
 const project = atom({ plugin: 'light-table-panel', key: 'project' } as const, null)
 const server = atom({ plugin: 'light-table-panel', key: 'server' } as const, 'unknown')
+const appRunning = atom({ plugin: 'light-table-panel', key: 'appRunning' } as const, false)
 const isCollapsed = atom({ plugin: 'light-table-panel', key: 'isCollapsed' } as const, false)
 
 // Set when a restart has been asked for during the current outage; cleared as soon
@@ -61,6 +62,18 @@ async function checkServer($: any, p: Project | null): Promise<ServerState> {
   }
 }
 
+/** Whether the project's built app (the record's `app`) is running. */
+async function checkApp($: any, p: Project | null): Promise<boolean> {
+  if (!p?.app) return false
+  const name = p.app.split('/').pop()
+  try {
+    const r = await $.process.run(['/bin/ps', '-axo', 'command'], { timeoutMs: 5000 })
+    return r.stdout.includes(`/${name}/Contents/MacOS/`)
+  } catch {
+    return false
+  }
+}
+
 async function refresh($: any) {
   table = await loadTable($)
   const p = await findProject($)
@@ -68,6 +81,8 @@ async function refresh($: any) {
   await update($, server, () => 'unknown' as ServerState)
   const s = await checkServer($, p)
   await update($, server, () => s)
+  const a = await checkApp($, p)
+  await update($, appRunning, () => a)
   return { p, s }
 }
 
@@ -122,6 +137,8 @@ export const register: Register = (on, options) => {
       const st = await checkServer($, cur)
       if (st === 'up') hasAskedRestart = false
       await update($, server, () => st)
+      const a = await checkApp($, cur)
+      await update($, appRunning, () => a)
     })
     return ran
   })
@@ -174,22 +191,53 @@ export const register: Register = (on, options) => {
         $.ui.toast(`Light Table: couldn't open the board. ${err?.message ?? ''}`.trim())
       }
     }
-    // The green :port opens the project's local page in the default browser.
+    const openThing = async (what: string, label: string) => {
+      try {
+        await $.process.run(['/usr/bin/open', what])
+      } catch (err: any) {
+        $.ui.toast(`Light Table: couldn't open ${label}. ${err?.message ?? ''}`.trim())
+      }
+    }
+    // One button per way in, as on the board: App, Local (starts a down server first), Live,
+    // or Open for the record's hand-set `open`.
+    const openCustom = async () => {
+      const cur = await read($, project)
+      if (!cur?.open) return
+      if (!table) table = await loadTable($)
+      const what = /^[a-z]+:/.test(cur.open) ? cur.open : `${table?.root}/${cur.open}`
+      return openThing(what, cur.open)
+    }
+    const openApp = async () => {
+      const cur = await read($, project)
+      if (!cur?.app) return
+      if (!table) table = await loadTable($)
+      $.ui.toast(`Opening ${cur.name}…`)
+      await openThing(`${table?.root}/${cur.app}`, 'the app')
+      await $.clock.sleep(2500)
+      const a = await checkApp($, cur)
+      await update($, appRunning, () => a)
+    }
     const openLocal = async () => {
       const cur = await read($, project)
       if (!cur?.server) return
       const url = cur.localUrl || `http://localhost:${cur.server.port}/`
-      try {
-        await $.process.run(['/usr/bin/open', url])
-      } catch (err: any) {
-        $.ui.toast(`Light Table: couldn't open ${url}. ${err?.message ?? ''}`.trim())
-      }
-    }
-    const restart = async () => {
-      const cur = await read($, project)
-      if (!cur?.server) return
+      // Only a server seen down gets started; if the check itself fails, just open the page.
+      if ((await checkServer($, cur)) !== 'down') return openThing(url, url)
+      // Down: ask Claude to start it, then open the page once it answers (up to 90 s).
       hasAskedRestart = true
-      sendToClaude($, restartText(cur), `Restarting ${cur.name}'s server…`)
+      sendToClaude($, restartText(cur), `Starting ${cur.name}'s server; the page opens when it's up…`)
+      for (let i = 0; i < 45; i++) {
+        await $.clock.sleep(2000)
+        if ((await checkServer($, cur)) === 'up') {
+          await update($, server, () => 'up' as ServerState)
+          return openThing(url, url)
+        }
+      }
+      $.ui.toast(`Light Table: ${cur.name}'s server didn't come up; the page wasn't opened.`)
+    }
+    const openLive = async () => {
+      const cur = await read($, project)
+      if (cur?.liveUrl) return openThing(cur.liveUrl, cur.liveUrl)
     }
     const wrap = async () => {
       const cur = await read($, project)
@@ -232,7 +280,6 @@ export const register: Register = (on, options) => {
     }
 
     // A project: one line. Who/where on the left (next step trimmed to fit), buttons on the right.
-    const light = s === 'up' ? '•' : s === 'down' ? '◦' : '…'
     const decisions = p.calls?.length ?? 0
 
     return stack(
@@ -240,24 +287,19 @@ export const register: Register = (on, options) => {
         {/* Name, light and count keep their size; only the next step gives way. */}
         <Box flexDirection="row" gap={2} flexGrow={1} flexShrink={1} minWidth={0} alignItems="center">
           <Box flexShrink={0}><Text bold wrap="truncate">∴{" "}{p.name}</Text></Box>
-          {p.server && (
-            <Box flexShrink={0}>
-              <Button key="local" plain onPress={openLocal}>
-                <Text wrap="truncate" color={s === 'up' ? 'green' : s === 'down' ? 'yellow' : undefined} dimColor={s !== 'up' && s !== 'down'}>{light}{" "}:{p.server.port}</Text>
-              </Button>
-            </Box>
-          )}
           {decisions > 0 && (
-            <Box flexShrink={0}><Text wrap="truncate" color="#8a80c0">{decisions} decision{decisions === 1 ? '' : 's'}</Text></Box>
+            <Box flexShrink={0}><Text wrap="truncate" color="#a598e6">{decisions} decision{decisions === 1 ? '' : 's'}</Text></Box>
           )}
           {p.nextStep && (
             <Box flexShrink={1} minWidth={0}><Text dimColor wrap="truncate">Next: {p.nextStep}</Text></Box>
           )}
         </Box>
         <Box flexDirection="row" gap={1} flexShrink={0}>
-          {p.server && (
-            <Button key="restart" label={s === 'up' ? 'Restart' : 'Start server'} variant={s === 'down' ? 'primary' : 'secondary'} onPress={restart} />
-          )}
+          {/* Ways in. Local is the bright one while its server is down: pressing it starts it. */}
+          {p.open && <Button key="open" label="Open" variant="secondary" onPress={openCustom} />}
+          {p.app && <Button key="app" label="App" variant="secondary" onPress={openApp} />}
+          {p.server && <Button key="local" label="Local" variant={s === 'down' ? 'primary' : 'secondary'} onPress={openLocal} />}
+          {p.liveUrl && <Button key="live" label="Live" variant="secondary" onPress={openLive} />}
           <Button key="wrap" label="Update board" variant="secondary" onPress={wrap} />
           <Button key="board" label="Board" onPress={openBoard} />
           <Button key="hide" label="Hide" dimColor onPress={() => update($, isCollapsed, () => true)} />

@@ -22,6 +22,7 @@ declare module 'claude-code' {
       server: ServerState
       appRunning: boolean
       decisionsOpen: boolean
+      sweepFresh: boolean
       isCollapsed: boolean
     }
   }

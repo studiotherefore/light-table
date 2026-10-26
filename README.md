@@ -14,7 +14,7 @@ One dark page at `http://localhost:8130` answers, at a glance: what's active, wh
 
 Your agent keeps it current:
 
-- **Wrap up** at the end of a session (say "wrap up"): the agent rewrites the project's entry (now, next step, decisions, status) and screenshots the app.
+- **Wrap up** any time you want a card refreshed now (say "wrap up", or run `/light-table:light-table-wrap-up` in Claude Code): the agent rewrites the project's entry (now, next step, decisions, status) and screenshots the app.
 - **Nightly sweep**: finds projects whose files changed, updates just those from their docs and git log, refreshes screenshots, rebuilds the board.
 - **Cloud sessions**: work pushed to GitHub from a cloud session, another account or another machine reaches the board too. The sweep reads it (read-only, through `gh`), and tells you if the branch isn't merged yet. Paste one end-of-session block into those projects' `CLAUDE.md`: see [docs/cloud-wrapup.md](docs/cloud-wrapup.md).
 
@@ -57,9 +57,9 @@ Then, in Codex: **"Set up Light Table."** See [codex/README.md](codex/README.md)
 
 | You want to | Say (or press) |
 |---|---|
-| See the board | "Open my board" (or **Board**) |
-| Record where a project stands | "Wrap up" |
-| Catch up every project now | "Run the Light Table sweep" |
+| See the board | "Open my board" (or **⠿** in the panel) |
+| Record where a project stands | "Wrap up" (`/light-table:light-table-wrap-up`) |
+| Catch up every project now | "Run the Light Table sweep" (`/light-table:light-table-sweep`) |
 | Choose a project's cover image | Name an image in its folder `…current….png` |
 | Keep headless screenshots off for a project | Set `"autoCapture": false` on its entry |
 

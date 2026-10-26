@@ -10,6 +10,7 @@ const project = atom({ plugin: 'light-table-panel', key: 'project' } as const, n
 const server = atom({ plugin: 'light-table-panel', key: 'server' } as const, 'unknown')
 const appRunning = atom({ plugin: 'light-table-panel', key: 'appRunning' } as const, false)
 const decisionsOpen = atom({ plugin: 'light-table-panel', key: 'decisionsOpen' } as const, false)
+const sweepFresh = atom({ plugin: 'light-table-panel', key: 'sweepFresh' } as const, true)
 const isCollapsed = atom({ plugin: 'light-table-panel', key: 'isCollapsed' } as const, false)
 
 // Set when a restart has been asked for during the current outage; cleared as soon
@@ -75,10 +76,27 @@ async function checkApp($: any, p: Project | null): Promise<boolean> {
   }
 }
 
+/**
+ * Whether a nightly sweep ran in the last two days (sweep.py leaves the time in
+ * <table folder>/last-sweep). Without one, nothing else refreshes the cards, so
+ * the row shows an Update button.
+ */
+async function checkSweep($: any): Promise<boolean> {
+  if (!table) return true
+  try {
+    const last = Date.parse((await $.fs.read(`${table.home}/last-sweep`)).trim())
+    return Date.now() - last < 48 * 3600_000
+  } catch {
+    return false
+  }
+}
+
 async function refresh($: any) {
   table = await loadTable($)
   const p = await findProject($)
   await update($, project, () => p)
+  const fresh = await checkSweep($)
+  await update($, sweepFresh, () => fresh)
   await update($, server, () => 'unknown' as ServerState)
   const s = await checkServer($, p)
   await update($, server, () => s)
@@ -135,6 +153,8 @@ export const register: Register = (on, options) => {
       // Re-read the record too, so Add to board / Update board show up here without a restart.
       const cur = await findProject($)
       if (JSON.stringify(cur) !== JSON.stringify(await read($, project))) await update($, project, () => cur)
+      const fresh = await checkSweep($)
+      if (fresh !== (await read($, sweepFresh))) await update($, sweepFresh, () => fresh)
       const st = await checkServer($, cur)
       if (st === 'up') hasAskedRestart = false
       await update($, server, () => st)
@@ -286,6 +306,8 @@ export const register: Register = (on, options) => {
     const decisions = p.calls?.length ?? 0
     const open = await read($, decisionsOpen)
     const toggle = () => update($, decisionsOpen, v => !v)
+    // Update only shows while no nightly sweep is keeping the cards current.
+    const showUpdate = !(await read($, sweepFresh))
 
     // Hide reads "Hide" while everything fits on the row, "–" once it doesn't. The desktop
     // reports the width in cells (85 in a 1468 pt window); taken as about 9 pt each
@@ -294,7 +316,7 @@ export const register: Register = (on, options) => {
     const ways = [p.open && 'Open', p.app && 'App', p.server && 'Local', p.liveUrl && 'Live'].filter(Boolean) as string[]
     const countText = decisions > 0 ? `${decisions} decision${decisions === 1 ? '' : 's'}` : ''
     const rowPt = 28 + 20 + p.name.length * 8.5 + (decisions > 0 ? 16 + countText.length * 7.5 + 14 : 0)
-      + 16 + ways.reduce((n, w) => n + w.length * 7.5 + 24 + 8, 0) + 26 + 8 + 34
+      + 16 + ways.reduce((n, w) => n + w.length * 7.5 + 24 + 8, 0) + (showUpdate ? 45 + 8 : 0) + 26 + 8 + 34
     const room = cols * 9
     const hideLabel = room >= rowPt ? 'Hide' : '\u2013'
     // Narrower still: the count drops its word ("1 ›") so the title is never cut.
@@ -323,6 +345,7 @@ export const register: Register = (on, options) => {
           {p.app && <Button key="app" label="App" variant="secondary" onPress={openApp} />}
           {p.server && <Button key="local" label="Local" variant={s === 'down' ? 'primary' : 'secondary'} onPress={openLocal} />}
           {p.liveUrl && <Button key="live" label="Live" variant="secondary" onPress={openLive} />}
+          {showUpdate && <Button key="wrap" label="Update" plain dimColor onPress={wrap} />}
           <Button key="board" label={"\u283f"} plain dimColor onPress={openBoard} />
           <Button key="hide" label={hideLabel} plain dimColor onPress={() => update($, isCollapsed, () => true)} />
         </Box>

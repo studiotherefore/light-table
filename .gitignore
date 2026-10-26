@@ -15,6 +15,7 @@ server.log
 !demo/table/config.json
 !demo/table/projects.json
 core-path
+last-sweep
 sweep.log
 .claude/settings.local.json
 places.json

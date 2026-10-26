@@ -17,7 +17,7 @@ import subprocess
 import sys
 
 from build import newest_mtime
-from config import HOME, IGNORE_TOP, RECORD, ROOT, SKIP_DIRS, require_root
+from config import HOME, IGNORE_TOP, RECORD, ROOT, SKIP_DIRS, require_root, table_path
 DOC_EXT = (".md", ".txt")
 # Files that mark a folder as a project in its own right (rather than a group of projects).
 MARKERS = ("README", "CLAUDE.md", "AGENTS.md", "HANDOFF", "package.json", "pyproject.toml",
@@ -107,6 +107,11 @@ def main():
             m = newest_mtime(f)
             if m > cutoff:
                 candidates.append({"folder": os.path.relpath(f, ROOT), "filesChanged": day(m) if m else None})
+
+    # When the sweep last ran, for the panel: it shows an Update button only while
+    # no sweep has run in the last two days (none set up, or one that stalled).
+    with open(table_path("last-sweep"), "w") as fh:
+        fh.write(datetime.datetime.now().isoformat(timespec="minutes"))
 
     print(json.dumps({"today": datetime.date.today().isoformat(), "changed": changed, "candidates": candidates}, indent=1))
 

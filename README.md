@@ -9,7 +9,7 @@ One dark page at `http://localhost:8130` answers, at a glance: what's active, wh
 - **Active** projects get large cards: screenshot, status, Overview / Decisions tabs, next step, buttons for the live site, local server, notes and folder.
 - **Resting** projects are compact rows; **Archive** folds away at the bottom.
 - **Drag** cards between shelves and into your own order; it saves.
-- **Click a project's name** to open its latest Claude Code or Codex session (or start one in its folder).
+- **Click a project's name** to open its latest Claude Code session (or start one in its folder).
 - **Hover** the stacked-frames icon to cycle through recent screenshots.
 
 Your agent keeps it current:
@@ -20,7 +20,7 @@ Your agent keeps it current:
 
 Everything runs on your Mac. Status lives in one file in your own table folder (`~/.light-table/projects.json`); **your project folders are only ever read.**
 
-Requirements: macOS, Python 3 (built in), Google Chrome for automatic screenshots (optional), and Claude Code or Codex.
+Requirements: macOS, Python 3 (built in), Google Chrome for automatic screenshots (optional), and Claude Code.
 
 ## Try the demo first
 
@@ -44,14 +44,9 @@ Then ask: **"Set up Light Table."** The agent asks which folder holds your proje
 
 Optional: **one row of buttons above the prompt** (Open, App, Local, Live, Board, Hide, plus the decisions list) and automatic dev-server restarts. This uses an early-access Claude Code API that still changes. See [claude/panel/README.md](claude/panel/README.md).
 
-## Install for Codex
+## Codex
 
-```bash
-git clone https://github.com/studiotherefore/light-table
-sh light-table/codex/install.sh
-```
-
-Then, in Codex: **"Set up Light Table."** See [codex/README.md](codex/README.md). Codex support is new and less tested.
+**Codex isn't supported yet.** Light Table is being finished for Claude Code first. The `codex/` folder holds early, untested work toward it; don't rely on it.
 
 ## Everyday use
 
@@ -70,10 +65,10 @@ The nightly sweep: [schedule/README.md](schedule/README.md).
 ```
 core/        the board: build.py, server.py, sweep.py, cloud.py, snap.py, open.py, template.html
              config.example.json, projects.example.json, RECORD.md (every field and rule)
-skills/      light-table-setup, -wrap-up, -sweep, -open (shared by Claude Code and Codex)
+skills/      light-table-setup, -wrap-up, -sweep, -open (Agent Skills format)
 demo/        an invented board to try it out (the image above)
 claude/      the optional Claude Code panel
-codex/       Codex install script and AGENTS.md snippet
+codex/       early Codex work (not supported yet)
 schedule/    nightly sweep through launchd for anyone without the Claude app's scheduler
 ```
 

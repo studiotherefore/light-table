@@ -1,6 +1,6 @@
 # Light Table for Codex
 
-Status: the skills are written in the shared Agent Skills format and are meant to work in Codex as they are. **Not yet tested in Codex.** Testing and a Codex plugin bundle are the next step.
+**Status: not supported yet.** Light Table is being finished for Claude Code first, and Codex work is paused until then. What's here is early and untested; don't rely on it.
 
 ## Install (personal)
 

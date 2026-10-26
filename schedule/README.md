@@ -6,11 +6,13 @@ Each night the `light-table-sweep` skill finds projects whose files changed sinc
 
 Create a scheduled task: daily, about 11 PM, prompt **"Run the light-table-sweep skill."** The setup skill offers to do this for you.
 
+**Then press Run now once, while you're at the computer,** and choose "Always allow" for each command it asks about. A scheduled run that hits a command needing approval waits for a prompt nobody sees at night: it shows as running and blocks every later run. The sweep only ever runs three fixed commands (`core/nightly-find.sh`, `core/nightly-finish.sh` and `core/backup.sh`), so approving them once covers every future run. After updating the plugin, do one more Run now, since the commands' path changes.
+
 ## Anyone else (macOS launchd)
 
-`run-sweep.sh` runs the sweep through the agent's headless CLI (`claude -p` or `codex exec`) and appends the report to `sweep.log` in your table folder.
+`run-sweep.sh` runs the sweep through Claude Code's headless CLI (`claude -p`) and appends the report to `sweep.log` in your table folder.
 
-1. Try it once by hand: `sh schedule/run-sweep.sh claude` (or `codex`).
+1. Try it once by hand: `sh schedule/run-sweep.sh claude`. It runs with a fixed list of allowed tools, so it never stops for approval. (The `codex` option is early, untested work: Codex isn't supported yet.)
 2. Copy `launchd.plist.template` to `~/Library/LaunchAgents/com.lighttable.sweep.plist`, replacing `REPO` (this folder), `HOME` (your home folder) and `AGENT`.
 3. `launchctl load ~/Library/LaunchAgents/com.lighttable.sweep.plist`
 

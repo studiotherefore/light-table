@@ -3,7 +3,7 @@
 # to your own private Git repo. Does nothing unless the table folder is a Git repo
 # with a remote called origin. Commits only when something changed.
 set -e
-HOME_DIR="${LIGHT_TABLE_HOME:-$HOME/.light-table}"
+HOME_DIR="${1:-${LIGHT_TABLE_HOME:-$HOME/.light-table}}"  # sh backup.sh [table folder]
 cd "$HOME_DIR"
 if [ ! -d .git ] || ! git remote get-url origin >/dev/null 2>&1; then
   echo "Backup: off (the table folder isn't a Git repo with a remote)."

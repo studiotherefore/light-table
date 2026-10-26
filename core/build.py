@@ -171,6 +171,19 @@ def thumb_data_uri(src, pid):
         return "data:image/jpeg;base64," + base64.b64encode(fh.read()).decode()
 
 
+def first_commit(folder):
+    """The date of the project's first commit, when the folder is its own git repo. Read-only."""
+    if not folder or not os.path.isdir(os.path.join(folder, ".git")):
+        return None
+    try:
+        r = subprocess.run(["git", "-C", folder, "log", "--max-parents=0", "--format=%cs"],
+                           capture_output=True, text=True, timeout=20)
+    except (OSError, subprocess.TimeoutExpired):  # no git, or a repo too slow to ask: leave it out
+        return None
+    dates = r.stdout.split()
+    return min(dates) if r.returncode == 0 and dates else None
+
+
 def remote(p):
     """A project whose current copy is only on GitHub (`"local": false`): the title
     opens the live site, Notes opens the handoff on the newest branch, and the local
@@ -212,9 +225,18 @@ def main():
     with open(RECORD) as fh:
         data = json.load(fh)
 
+    # The owner's own notes, typed on the board (server.py writes notes.json).
+    try:
+        with open(table_path("notes.json")) as fh:
+            notes = json.load(fh)
+    except (OSError, ValueError):
+        notes = {}
+
     agent = sessions.provider(CFG["sessions"])
     used = set()
     for p in data["projects"]:
+        if p["id"] in notes:
+            p["note"], p["noteUpdated"] = notes[p["id"]]["text"], notes[p["id"]]["updated"]
         folder = os.path.join(ROOT, p["folder"])
         if p.get("local") is False:
             folder = ""  # the local copy is old; remote() fills in the links
@@ -225,6 +247,7 @@ def main():
         p["exists"] = os.path.exists(folder) or p.get("local") is False
         m = newest_mtime(folder) if folder and p["exists"] else 0
         p["filesChanged"] = datetime.date.fromtimestamp(m).isoformat() if m else None
+        p["started"] = p.get("started") or first_commit(folder)
 
         src, p["imageSource"] = choose_image(p, folder)
         p["image"] = thumb_data_uri(src, p["id"]) if src else None

@@ -19,4 +19,7 @@ last-sweep
 sweep.log
 .claude/settings.local.json
 places.json
+notes.json
 .studio-sync
+# The demo board shows one invented note
+!demo/table/notes.json

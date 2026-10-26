@@ -25,7 +25,8 @@
    "liveUrl": null,
    "handoff": "tide-clock/HANDOFF.md",
    "shelf": "motion",
-   "rank": 0
+   "rank": 0,
+   "about": "A wall clock with one hand that follows the tide instead of the hour: high water at the top, low water at the bottom. It reads the nearest station's predictions and redraws the water level every few minutes.\n\nMade for a kitchen wall by the sea, but any coastal station works."
   },
   {
    "id": "moth-radio",
@@ -37,7 +38,7 @@
    "lastWorked": "2026-10-02",
    "updated": "2026-10-02",
    "now": "The night map and player work with 214 sample microphones. The time zone picker is built on a branch and not merged.",
-   "nextStep": "Try the time zone picker branch and okay the merge.",
+   "nextStep": "Yours first: the time zone picker (below). Then add a sleep timer that fades the stream out.",
    "calls": [
     "Try the time zone picker and okay the merge"
    ],
@@ -49,7 +50,8 @@
    "localUrl": "http://localhost:5174/",
    "liveUrl": null,
    "shelf": "motion",
-   "rank": 1
+   "rank": 1,
+   "about": "A web radio that plays night-time field recordings from wherever on Earth it is currently night. Each stream comes with its place, its time and a star field for that sky."
   },
   {
    "id": "field-recordings",
@@ -61,7 +63,7 @@
    "lastWorked": "2026-09-29",
    "updated": "2026-09-30",
    "now": "Forty clips are trimmed and tagged; five are chosen for side A.",
-   "nextStep": "Pick the remaining seven clips for side A.",
+   "nextStep": "Yours first: the last seven clips (below). Then sequence side A and send it for mastering.",
    "calls": [
     "Pick the remaining seven clips for side A",
     "Ask Sam about mastering dates",
@@ -69,7 +71,8 @@
    ],
    "server": null,
    "shelf": "motion",
-   "rank": 2
+   "rank": 2,
+   "about": "A short album cut from a year of field recordings: rain, harbours, night insects and one very long train. The work is choosing, trimming and sequencing, not recording more."
   },
   {
    "id": "loom-sim",
@@ -85,7 +88,8 @@
    "calls": [],
    "server": null,
    "shelf": "motion",
-   "rank": 3
+   "rank": 3,
+   "about": "A simulator of a jacquard loom. It reads punch-card pattern files, lifts the threads card by card, and weaves the cloth on screen, so you can see how a pattern turns into fabric."
   },
   {
    "id": "letterpress-site",
@@ -97,7 +101,7 @@
    "lastWorked": "2026-08-14",
    "updated": "2026-08-14",
    "now": "Live, with the shop page hidden until prices are set.",
-   "nextStep": "Add prices and unhide the shop page.",
+   "nextStep": "Yours first: the price list (below). Then add prices and unhide the shop page.",
    "calls": [
     "Get the price list from the studio"
    ],
@@ -109,7 +113,8 @@
    "localUrl": "http://localhost:8000/",
    "liveUrl": "https://example.com",
    "shelf": "resting",
-   "rank": 4
+   "rank": 4,
+   "about": "The portfolio site for a small letterpress studio: a few pages of prints, the type they own, and how to order."
   },
   {
    "id": "pixel-garden",
@@ -125,7 +130,8 @@
    "calls": [],
    "server": null,
    "shelf": "resting",
-   "rank": 5
+   "rank": 5,
+   "about": "A tiny idle game about growing plants out of pixels. Seeds sprout a pixel at a time, and the garden keeps growing while the tab is closed."
   },
   {
    "id": "essay-on-maps",
@@ -144,7 +150,8 @@
    "server": null,
    "handoff": "Writing/essay-on-maps/HANDOFF.md",
    "shelf": "resting",
-   "rank": 6
+   "rank": 6,
+   "about": "An essay on hand-drawn maps and what they leave out: the shortcuts, the dogs, the shop that closed. It draws on maps friends have drawn from memory."
   },
   {
    "id": "star-chart-zine",
@@ -160,7 +167,8 @@
    "calls": [],
    "server": null,
    "shelf": "archive",
-   "rank": 7
+   "rank": 7,
+   "about": "A hand-drawn zine of star charts, one constellation per page, with the stories that go with them. Issue three covers the autumn sky."
   }
  ]
 }

@@ -6,8 +6,8 @@ A local board of all your projects, kept current by your coding agent.
 
 One dark page at `http://localhost:8130` answers, at a glance: what's active, where each project stands, what the next step is, which decisions are waiting on you, and what it looks like now.
 
-- **Active** projects get large cards: screenshot, status, Overview / Decisions tabs, next step, buttons for the live site, local server, notes and folder.
-- **Resting** projects are compact rows; **Archive** folds away at the bottom.
+- **Active** projects get large cards: screenshot, status and three tabs. **About** says what the project is. **Status** shows where it stands, the next step and **your calls** (decisions only you can make). **Notes** holds your own notes, which no agent ever touches. Each card has buttons for the live site, local server, handoff file and folder.
+- **Resting** projects are compact rows (click the text to write a note); **Archive** folds away at the bottom.
 - **Drag** cards between shelves and into your own order; it saves.
 - **Click a project's name** to open its latest Claude Code session (or start one in its folder).
 - **Hover** the stacked-frames icon to cycle through recent screenshots.

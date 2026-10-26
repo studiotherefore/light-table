@@ -13,15 +13,16 @@ The scripts are in `core/`, two folders up from this skill's folder (`<this skil
 
 If the config or record doesn't exist, say Light Table isn't set up and offer the `light-table-setup` skill. Stop there.
 
-**Which entry:** the one whose `folder` (relative to `root`) contains the current working folder; if several do, the longest `folder` wins. If none does, this project is new: add an entry (pick `id`, `name`, `folder` relative to `root`, `kind`, `summary`), without `shelf` or `rank`.
+**Which entry:** the one whose `folder` (relative to `root`) contains the current working folder; if several do, the longest `folder` wins. If none does, this project is new: add an entry (pick `id`, `name`, `folder` relative to `root`, `kind`, `summary`, `about`), without `shelf` or `rank`.
 
 ## Update the entry
 
 From what happened in this session (and the project's own docs if needed):
 
 - `now`: one or two sentences on where things stand after this session.
-- `nextStep`: the single concrete next step.
-- `calls`: decisions only the owner can make, people to contact, deadlines. Short and actionable. Keep only ones still open now: drop resolved ones and any the project's current notes no longer ask for.
+- `nextStep`: the next piece of work. If the very next thing is the owner's (one of the calls, e.g. "try it and okay the merge"), write "Yours first: <a few words> (below). Then <the work after>." Never repeat a call's wording in `nextStep`: the card shows both.
+- `calls`: things only the owner can do: decisions, things to try or listen to, people to contact, deadlines. Most important first (the card shows the top three). Short and actionable. Keep only ones still open now: drop resolved ones and any the project's current notes no longer ask for.
+- `about`: only if the entry has none, or the project changed direction: two or three plain sentences on what the project is (not where it stands), from its README / CLAUDE.md. A blank line between paragraphs. Mark anything inferred ` (unconfirmed)`.
 - `status`: `active` | `waiting` | `paused` | `dormant` (see RECORD.md).
 - `lastWorked` and `updated`: today. `updatedBy`: `"wrap up"`. Also set the record's top-level `updated` to today.
 - Keep every other field as it is. Check the file is valid JSON afterwards (`python3 -m json.tool "<record>" >/dev/null`).
@@ -42,4 +43,5 @@ Run `python3 "$CORE/places.py" restore` (it puts back any card placement that ch
 
 - Edit nothing outside the table folder. Don't touch the project's files for this.
 - **Never change an entry's `shelf` or `rank`**: that's where the owner placed it on the board.
+- **Never edit `notes.json`** in the table folder: those are the owner's own notes, typed on the board.
 - Don't invent. Mark inferences ` (unconfirmed)`.

@@ -7,9 +7,12 @@
   POST /api/open      {"id": ..., "what": "folder"|"handoff"|"app"}  open it in Finder / its app, or launch the built app
   POST /api/order     {"id": ..., "shelf": "motion"|"resting"|"archive", "next": id|null, "after": bool}
                       the owner dragged one card; saved as rank and shelf, and to places.json
+  POST /api/note      {"id": ..., "text": ...}  the owner's own note on a card, kept in notes.json
+                      (never in the record, so no sweep or agent touches it); empty text removes it
 
 Only ever writes inside the table folder (see config.py). Listens on localhost only.
 """
+import datetime
 import json
 import os
 import subprocess
@@ -20,6 +23,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import places
 from config import CORE as HERE, HOME, PORT, RECORD, ROOT, require_root, table_path
 
+NOTES = table_path("notes.json")
 LOCK = threading.Lock()
 
 
@@ -118,6 +122,24 @@ class Handler(BaseHTTPRequestHandler):
                 places.save(data)
                 r = run("build.py")
                 return self.reply(200, {"ok": r.returncode == 0, "ids": ids})
+            if self.path == "/api/note":
+                with open(RECORD) as fh:
+                    ids = {p["id"] for p in json.load(fh)["projects"]}
+                text = body.get("text")
+                if body.get("id") not in ids or not isinstance(text, str) or len(text) > 5000:
+                    return self.reply(400, {"error": "unknown card or note too long"})
+                try:
+                    notes = places.load(NOTES)
+                except (OSError, ValueError):
+                    notes = {}
+                text = text.strip()
+                if text:
+                    notes[body["id"]] = {"text": text, "updated": datetime.date.today().isoformat()}
+                else:
+                    notes.pop(body["id"], None)
+                places.write(NOTES, notes)
+                r = run("build.py")
+                return self.reply(200, {"ok": r.returncode == 0, "updated": notes.get(body["id"], {}).get("updated")})
         self.reply(404, {"error": "not found"})
 
 

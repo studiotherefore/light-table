@@ -133,6 +133,34 @@ h3 { margin: 0; font: 700 21px/1.15 var(--display); font-variation-settings: "wd
 .decisions li { display: grid; grid-template-columns: 12px 1fr; gap: 9px; font-size: 14px; line-height: 1.42; }
 .decisions li::before { content: ""; width: 8px; height: 8px; margin-top: 6px; border: 1.5px solid var(--wait); border-radius: 2px; }
 .quiet { color: var(--ink-3); font-size: 14px; margin: 0; }
+/* Status: Now is capped at three lines (click to show all); Your calls shows the top three */
+.now.clamp { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; cursor: pointer; }
+.now.open { cursor: pointer; }
+.calls .lbl { font: 600 10.5px/1 var(--body); letter-spacing: 0.14em; text-transform: uppercase; color: var(--wait); display: block; margin-bottom: 8px; }
+.decisions li[hidden] { display: none; }
+.more-calls { margin: 6px 0 0 21px; padding: 0; background: none; border: 0; cursor: pointer; font: 12px/1 var(--mono); color: var(--ink-3); }
+.more-calls:hover { color: var(--ink-2); }
+/* About: what the project is */
+.about { margin: 0; color: var(--ink-2); font-size: 14px; }
+.facts { display: grid; grid-template-columns: 64px 1fr; gap: 5px 10px; margin: 2px 0 0; font: 12px/1.4 var(--mono); }
+.facts dt { color: var(--ink-3); }
+.facts dd { margin: 0; color: var(--ink-2); overflow-wrap: anywhere; }
+/* the owner's own notes: an icon tab on cards, and the text cell on resting rows */
+.tabs button[data-tab="notes"] { padding-left: 9px; padding-right: 9px; position: relative; }
+.tabs button[data-tab="notes"] svg { width: 14px; height: 14px; display: block; }
+.tabs button[data-tab="notes"].has { color: var(--ink-2); }
+.note-edit { width: 100%; min-height: 96px; resize: vertical; box-sizing: border-box; padding: 9px 10px; border-radius: 3px;
+  border: 1px solid var(--rule); background: var(--sheet); color: var(--ink-2);
+  font: 14px/1.5 var(--body); font-variation-settings: "wdth" 96; }
+.note-edit:focus { outline: none; border-color: var(--rule-hi); }
+.note-edit::placeholder { color: var(--ink-3); }
+.note-meta { font: 11px/1.3 var(--mono); color: var(--ink-3); min-height: 14px; }
+.note-text { margin: 0; font-size: 14px; color: var(--ink-2); white-space: pre-line; }
+.row .s { cursor: text; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.row .s.dim { color: var(--ink-3); }
+.row .s.noted { color: var(--ink); white-space: pre-line; }
+.row .s .note-edit { min-height: 60px; display: block; }
+.row .s.editing { display: block; -webkit-line-clamp: unset; overflow: visible; }
 
 /* lists: resting and archive */
 .ledger { border-top: 1px solid var(--rule); min-height: 52px; }
@@ -266,9 +294,15 @@ const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "
 const today = new Date(new Date().toDateString());
 const daysAgo = iso => iso ? Math.round((today - new Date(iso + "T00:00")) / 864e5) : null;
 const ago = iso => { const d = daysAgo(iso); if (d == null) return "—"; if (d <= 0) return "today"; if (d === 1) return "yesterday"; if (d < 45) return d + "d ago"; return Math.round(d / 30) + "mo ago"; };
+// Each card opens on Status, or on the tab last clicked on that card (kept in this browser).
+const TABS_KEY = "studio-card-tabs";
+let cardTabs = {}; try { cardTabs = JSON.parse(localStorage.getItem(TABS_KEY) || "{}"); } catch (err) {}
+const savedTab = id => ["about", "status", "notes"].includes(cardTabs[id]) ? cardTabs[id] : "status";
+const rememberTab = (id, tab) => { cardTabs[id] = tab; try { localStorage.setItem(TABS_KEY, JSON.stringify(cardTabs)); } catch (err) {} };
+const longDate = iso => iso ? new Date(iso + "T00:00").toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) : "";
 const shortDate = iso => iso ? new Date(iso + "T00:00").toLocaleDateString(undefined, { month: "short", day: "numeric" }) : "";
 const lastTouch = p => [p.lastWorked, p.filesChanged].filter(Boolean).sort().pop();
-const LABEL = { active: "Active", waiting: "Waiting on you", paused: "Paused", dormant: "Dormant" };
+const LABEL = { active: "Active", waiting: "Waiting", paused: "Paused", dormant: "Dormant" };
 // Buttons and dragging save only when the board is served by mods/studio/server.py.
 const SAVE = location.protocol === "http:";
 if (STUDIO.title) { document.title = STUDIO.title; document.getElementById("board-title").textContent = STUDIO.title; }
@@ -298,7 +332,7 @@ function render() {
   const hasCalls = p => shelf(p) !== "archive" && (p.calls || []).length > 0;
   const live = ps.filter(p => shelf(p) !== "archive");
   const counts = live.reduce((m, p) => (m[p.status] = (m[p.status] || 0) + 1, m), {});
-  const opts = [["all", "All", live.length], ["decisions", "Has decisions", live.filter(hasCalls).length],
+  const opts = [["all", "All", live.length], ["decisions", "Your calls", live.filter(hasCalls).length],
     ...["active", "waiting", "paused", "dormant"].filter(s => counts[s]).map(s => [s, LABEL[s], counts[s]])];
   document.getElementById("filters").innerHTML = opts.map(([k, l, n]) =>
     `<button type="button" data-f="${k}" aria-pressed="${filter === k}">${esc(l)} ${n}</button>`).join("");
@@ -321,8 +355,8 @@ function openLinks(p) {
   if (p.liveUrl) out.push(`<a class="primary" href="${esc(p.liveUrl)}" target="_blank" rel="noopener">Live</a>`);
   if (p.localUrl) out.push(`<a class="${p.liveUrl ? "" : "primary"}" href="${esc(p.localUrl)}" target="_blank" rel="noopener" title="Works while its server is running">Local :${esc(p.server?.port ?? "")}</a>`);
   if (p.appReady) out.push(`<button type="button" class="linkbtn${p.liveUrl || p.localUrl ? "" : " primary"}" data-act="open-app" data-id="${esc(p.id)}" ${SAVE ? "" : "disabled"} title="Launch the built app">App</button>`);
-  if (p.notesUrl) out.push(`<a href="${esc(p.notesUrl)}" target="_blank" rel="noopener" title="The handoff on GitHub${p.notesBranch ? ", branch " + esc(p.notesBranch) : ""}">Notes</a>`);
-  if (p.handoffUrl) out.push(`<button type="button" class="linkbtn" data-act="open-handoff" data-id="${esc(p.id)}" ${SAVE ? "" : "disabled"} title="Open the handoff notes">Notes</button>`);
+  if (p.notesUrl) out.push(`<a href="${esc(p.notesUrl)}" target="_blank" rel="noopener" title="The handoff on GitHub${p.notesBranch ? ", branch " + esc(p.notesBranch) : ""}">Handoff</a>`);
+  if (p.handoffUrl) out.push(`<button type="button" class="linkbtn" data-act="open-handoff" data-id="${esc(p.id)}" ${SAVE ? "" : "disabled"} title="Open the project's handoff file">Handoff</button>`);
   out.push(folderBtn(p));
   return out.join("");
 }
@@ -333,7 +367,7 @@ const grip = SAVE ? `<span class="grip" title="Drag to reorder, or into Resting 
 function slide(p) {
   const stale = p.filesChanged && p.updated && p.filesChanged > p.updated;
   const calls = p.calls || [];
-  const tab = (calls.length && p.status === "waiting") ? "decisions" : "overview";
+  const tab = savedTab(p.id);
   const img = p.image
     ? `<img class="layer on" src="${esc(p.image)}" alt="Latest screenshot of ${esc(p.name)}" loading="lazy" draggable="false"><img class="layer" alt="" draggable="false">${(p.gallery || []).length ? `<span class="pips" aria-hidden="true">${[p, ...p.gallery].map((_, i) => `<i${i ? "" : ` class="at"`}></i>`).join("")}</span>` : ""}`
     : `<div class="none"><div><span>∴</span>no screenshot yet</div></div>`;
@@ -343,21 +377,39 @@ function slide(p) {
       <div class="title"><h3>${titleLink(p)}</h3><div class="r">${(p.image && (p.gallery || []).length) ? `<button type="button" class="cycle" data-cycle="${esc(p.id)}" aria-label="Show more screenshots" title="Hover to flip through screenshots">${CYCLE_SVG}</button>` : ""}<span class="when" title="Last worked">${ago(lastTouch(p))}</span>${grip}</div></div>
       <div class="kind">${esc(p.kind)} · ${esc(p.folder)}</div>
       <div class="tabs" role="tablist">
-        <button type="button" role="tab" data-tab="overview" aria-selected="${tab === "overview"}">Overview</button>
-        <button type="button" role="tab" data-tab="decisions" aria-selected="${tab === "decisions"}">Decisions${calls.length ? ` <span class="count">${calls.length}</span>` : ""}</button>
+        <button type="button" role="tab" data-tab="about" aria-selected="${tab === "about"}">About</button>
+        <button type="button" role="tab" data-tab="status" aria-selected="${tab === "status"}">Status${calls.length ? ` <span class="count">${calls.length}</span>` : ""}</button>
+        <button type="button" role="tab" data-tab="notes" class="${p.note ? "has" : ""}" aria-selected="${tab === "notes"}" aria-label="${p.note ? "Your notes (written)" : "Your notes"}" title="${p.note ? "Your notes" : "Add notes"}">${noteIcon(!!p.note)}</button>
       </div>
-      <div class="panel" data-panel="overview" role="tabpanel" ${tab === "overview" ? "" : "hidden"}>
-        ${p.now ? `<p class="now">${esc(p.now)}</p>` : ""}
+      <div class="panel" data-panel="about" role="tabpanel" ${tab === "about" ? "" : "hidden"}>
+        ${(p.about || p.summary || "").split(/\n\s*\n/).filter(Boolean).map(t => `<p class="about">${esc(t)}</p>`).join("")}
+        <dl class="facts">
+          <dt>Type</dt><dd>${esc(p.kind)}</dd>
+          <dt>Where</dt><dd>${esc(p.remote && p.github ? p.github : p.folder)}</dd>
+          ${p.liveUrl ? `<dt>Live</dt><dd>${esc(p.liveUrl.replace(/^https?:\/\//, "").replace(/\/$/, ""))}</dd>` : ""}
+          ${p.started ? `<dt>Started</dt><dd>${esc(longDate(p.started))}</dd>` : ""}
+        </dl>
+      </div>
+      <div class="panel" data-panel="status" role="tabpanel" ${tab === "status" ? "" : "hidden"}>
+        ${p.now ? `<p class="now clamp" title="Click to show all">${esc(p.now)}</p>` : ""}
         ${p.nextStep ? `<div class="next"><span class="lbl">Next</span><p>${esc(p.nextStep)}</p></div>` : ""}
+        ${calls.length ? `<div class="calls"><span class="lbl">Your calls</span><ul class="decisions">${calls.map((c, i) => `<li${i >= 3 ? " hidden" : ""}>${esc(c)}</li>`).join("")}</ul>${calls.length > 3 ? `<button type="button" class="more-calls" data-more>+${calls.length - 3} more</button>` : ""}</div>` : ""}
         ${stale ? `<div class="flag"><span class="lbl">Check</span>Files changed ${ago(p.filesChanged)}; this note is from ${esc(p.updated)}.</div>` : ""}
       </div>
-      <div class="panel" data-panel="decisions" role="tabpanel" ${tab === "decisions" ? "" : "hidden"}>
-        ${calls.length ? `<ul class="decisions">${calls.map(c => `<li>${esc(c)}</li>`).join("")}</ul>` : `<p class="quiet">Nothing waiting on you here.</p>`}
+      <div class="panel" data-panel="notes" role="tabpanel" ${tab === "notes" ? "" : "hidden"}>
+        ${SAVE
+          ? `<textarea class="note-edit" data-note="${esc(p.id)}" placeholder="Your notes on this project. Saved when you click away." aria-label="Your notes on ${esc(p.name)}">${esc(p.note || "")}</textarea>
+             <div class="note-meta">${p.noteUpdated ? `Saved ${shortDate(p.noteUpdated)}` : ""}</div>`
+          : (p.note ? `<p class="note-text">${esc(p.note)}</p>` : `<p class="quiet">No notes yet.</p>`)}
       </div>
       <div class="links">${openLinks(p)}</div>
     </div>
   </article>`;
 }
+
+// The Notes tab's icon: a blank page, or a written page (lines, a little brighter) when there's a note.
+const NOTE_PAGE = `<path d="M3.5 1.75h6.4l2.6 2.6v9.9h-9z" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>`;
+const noteIcon = has => `<svg viewBox="0 0 16 16" aria-hidden="true">${NOTE_PAGE}${has ? `<path d="M5.5 7h5M5.5 9.5h5M5.5 12h3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>` : ""}</svg>`;
 
 const CYCLE_SVG = `<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="4.5" y="2.5" width="9" height="7" rx="1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2.5" y="5.5" width="9" height="7" rx="1" fill="var(--sheet)" stroke="currentColor" stroke-width="1.2"/></svg>`;
 
@@ -384,7 +436,7 @@ function row(p) {
   return `<div class="row" data-id="${esc(p.id)}" ${drag}>
     <div class="thumb">${thumb}</div>
     <div><b>${titleLink(p)}</b>${folderBtn(p, true)}<div class="kind">${esc(p.kind)} · ${esc(LABEL[p.status] || p.status)}</div></div>
-    <div class="s">${esc(p.nextStep || p.summary)}</div>
+    <div class="s ${p.note ? "noted" : "dim"}" data-row-note="${esc(p.id)}"${SAVE ? ` title="${p.note ? "Your note. Click to edit." : "Click to write a note"}"` : ""}>${esc(p.note || p.nextStep || p.summary)}</div>
     <div class="r"><span class="when">${ago(lastTouch(p))}</span>${grip}</div></div>`;
 }
 
@@ -562,19 +614,85 @@ document.addEventListener("click", e => {
     if (a.dataset.act === "recapture") return post("/api/recapture", {}, "Retaking screenshots, about a minute…");
     if (a.dataset.act === "open-folder") return post("/api/open", { id: a.dataset.id, what: "folder" }, "Opening in Finder…", false);
     if (a.dataset.act === "open-app") return post("/api/open", { id: a.dataset.id, what: "app" }, "Launching…", false);
-    if (a.dataset.act === "open-handoff") return post("/api/open", { id: a.dataset.id, what: "handoff" }, "Opening notes…", false);
+    if (a.dataset.act === "open-handoff") return post("/api/open", { id: a.dataset.id, what: "handoff" }, "Opening the handoff…", false);
   }
   const tb = e.target.closest("[data-tab]");
   if (tb) {
     const card = tb.closest(".slide");
     card.querySelectorAll("[data-tab]").forEach(x => x.setAttribute("aria-selected", x === tb));
     card.querySelectorAll("[data-panel]").forEach(x => x.hidden = x.dataset.panel !== tb.dataset.tab);
+    rememberTab(card.dataset.id, tb.dataset.tab);
     return;
+  }
+  const more = e.target.closest("[data-more]");
+  if (more) {  // show the rest of Your calls
+    more.closest(".calls").querySelectorAll("li[hidden]").forEach(li => li.hidden = false);
+    more.remove();
+    return;
+  }
+  const now = e.target.closest(".now.clamp, .now.open");
+  if (now) { now.classList.toggle("clamp"); now.classList.toggle("open"); now.title = now.classList.contains("clamp") ? "Click to show all" : "";
   }
   const b = e.target.closest("[data-f]"); if (!b) return;
   filter = b.dataset.f; try { localStorage.setItem("studio-filter", filter); } catch (err) {}
   render();
 });
+// ---- The owner's notes ----
+// Cards: the Notes tab's text box saves when it loses focus (or on ⌘↩).
+// Resting and archive rows: click the text to write or edit a note there.
+const projectById = id => STUDIO.projects.find(p => p.id === id);
+async function saveNote(id, text) {
+  const p = projectById(id);
+  if (!p || (p.note || "") === text.trim()) return null;
+  const out = await post("/api/note", { id, text }, "Saving note…", false);
+  if (!out) return null;
+  p.note = text.trim() || undefined;
+  p.noteUpdated = out.updated || undefined;
+  return p;
+}
+// Text boxes inside draggable cards: switch dragging off while typing, so selecting text works.
+document.addEventListener("focusin", e => {
+  if (!e.target.classList.contains("note-edit")) return;
+  const host = e.target.closest("[draggable]"); if (host) { host.dataset.drag = host.getAttribute("draggable"); host.setAttribute("draggable", "false"); }
+});
+document.addEventListener("focusout", async e => {
+  const t = e.target;
+  if (!t.classList.contains("note-edit")) return;
+  const host = t.closest("[data-drag]"); if (host) { host.setAttribute("draggable", host.dataset.drag); delete host.dataset.drag; }
+  const cell = t.closest("[data-row-note]");
+  const id = t.dataset.note;
+  const p = t.dataset.cancel ? null : await saveNote(id, t.value);
+  const q = projectById(id);
+  if (cell) {  // put the row's text back
+    cell.classList.remove("editing");
+    cell.className = "s " + (q.note ? "noted" : "dim");
+    cell.textContent = q.note || q.nextStep || q.summary || "";
+    cell.title = q.note ? "Your note. Click to edit." : "Click to write a note";
+  } else if (p) {
+    const card = t.closest(".slide");
+    const tabBtn = card.querySelector('[data-tab="notes"]');
+    tabBtn.classList.toggle("has", !!p.note);
+    tabBtn.innerHTML = noteIcon(!!p.note);
+    tabBtn.title = p.note ? "Your notes" : "Add notes";
+    card.querySelector(".note-meta").textContent = p.noteUpdated ? "Saved " + shortDate(p.noteUpdated) : "";
+  }
+});
+document.addEventListener("keydown", e => {
+  const t = e.target;
+  if (!t.classList || !t.classList.contains("note-edit")) return;
+  if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); t.blur(); }
+  if (e.key === "Escape") { t.dataset.cancel = "1"; t.blur(); }
+});
+document.addEventListener("click", e => {
+  if (!SAVE) return;
+  const cell = e.target.closest("[data-row-note]");
+  if (!cell || cell.classList.contains("editing") || e.target.closest("a, button")) return;
+  const p = projectById(cell.dataset.rowNote);
+  cell.classList.add("editing");
+  cell.innerHTML = `<textarea class="note-edit" data-note="${esc(p.id)}" placeholder="Your note on this project. Saved when you click away; Esc cancels.">${esc(p.note || "")}</textarea>`;
+  const ta = cell.querySelector("textarea"); ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length);
+});
+
 render();
 adoptTitles();
 </script>

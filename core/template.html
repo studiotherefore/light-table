@@ -321,6 +321,7 @@ function openLinks(p) {
   if (p.liveUrl) out.push(`<a class="primary" href="${esc(p.liveUrl)}" target="_blank" rel="noopener">Live</a>`);
   if (p.localUrl) out.push(`<a class="${p.liveUrl ? "" : "primary"}" href="${esc(p.localUrl)}" target="_blank" rel="noopener" title="Works while its server is running">Local :${esc(p.server?.port ?? "")}</a>`);
   if (p.appReady) out.push(`<button type="button" class="linkbtn${p.liveUrl || p.localUrl ? "" : " primary"}" data-act="open-app" data-id="${esc(p.id)}" ${SAVE ? "" : "disabled"} title="Launch the built app">App</button>`);
+  if (p.notesUrl) out.push(`<a href="${esc(p.notesUrl)}" target="_blank" rel="noopener" title="The handoff on GitHub${p.notesBranch ? ", branch " + esc(p.notesBranch) : ""}">Notes</a>`);
   if (p.handoffUrl) out.push(`<button type="button" class="linkbtn" data-act="open-handoff" data-id="${esc(p.id)}" ${SAVE ? "" : "disabled"} title="Open the handoff notes">Notes</button>`);
   out.push(folderBtn(p));
   return out.join("");
@@ -364,11 +365,13 @@ const CYCLE_SVG = `<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="4.5" y="
 // browsers won't open local folders from a web page).
 const FOLDER_SVG = `<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M1.75 3.25h4.1l1.5 1.6h6.9v7.9H1.75z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>`;
 function folderBtn(p, small = false) {
+  if (p.remote) return "";  // only on GitHub: the local copy is old
   return `<button type="button" class="${small ? "folder-sm" : "linkbtn folder"}" data-act="open-folder" data-id="${esc(p.id)}" ${SAVE ? "" : "disabled"} title="Open ${esc(p.folder)} in Finder" aria-label="Open folder in Finder">${FOLDER_SVG}</button>`;
 }
 
 // The project's name opens its latest agent session (or a new one in its folder).
 function titleLink(p) {
+  if (p.titleUrl) return `<a class="session" href="${esc(p.titleUrl)}" target="_blank" rel="noopener" draggable="false" title="Open ${p.liveUrl ? "the live site" : "it on GitHub"}">${esc(p.name)}<span class="go" aria-hidden="true">↗</span></a>`;
   if (!p.sessionUrl) return esc(p.name);
   const tip = p.sessionLast
     ? `Open session${p.sessionTitle ? ` “${p.sessionTitle}”` : ""} (last active ${ago(p.sessionLast.slice(0, 10))})`

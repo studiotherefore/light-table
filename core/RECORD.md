@@ -33,6 +33,9 @@ See `projects.example.json` for a filled-in example.
 | `screenshot` | setup | Optional fallback image path (relative to the root). |
 | `autoCapture` | owner | `false` keeps headless captures off for projects where they only show a loading, login or audio-gate screen. |
 | `sweep` | owner | `false` makes the nightly sweep skip this entry (for example the board's own entry, which you update by hand). |
+| `github` | owner / setup | Optional `"owner/repo"`, when the project's current repo isn't the local folder's `origin` (for example a repo on another GitHub account that you can read). `cloud.py` checks it. |
+| `local` | owner | `false` when the copy on this Mac is old and should be ignored: the card's title opens the live site (else the GitHub repo), Notes opens the handoff on GitHub, and Local, App and Finder are left off. |
+| `cloudSeen` | agent | `{"<branch>": "<head>"}`: cloud branches the sweep has already read, so `cloud.py` doesn't report them again. Written by the sweep only. |
 | `shelf` | **owner only** | `motion` · `resting` · `archive`. Set by dragging on the board. |
 | `rank` | **owner only** | Position in the owner's order. Set by dragging on the board. |
 
@@ -49,8 +52,16 @@ See `projects.example.json` for a filled-in example.
 
 The card image is chosen by `build.py`, in this order:
 
-1. A file with `current` in its name anywhere in the project: the owner's pick. It always wins, even over a newer board update or auto capture.
-2. The newer of the Wrap up capture (`shots/<id>.png|jpg`) and the auto-capture (`auto/<id>.png`).
+1. A file with `current` in its name anywhere in the project (a `.board/` folder counts), or one `cloud.py` fetched from the project's newest GitHub branch (`auto/cloud/<id>-current.*`): the owner's pick. It always wins, even over a newer board update or auto capture. If it's gone from the newest branch, the board drops its copy.
+2. The newest of: the board-update capture (`shots/<id>.png|jpg`), the auto-capture (`auto/<id>.png`), a cloud capture (`auto/cloud/<id>.*`) and the session capture in the project (`screenshots/*session*`, or the older `.board/shot.*`).
 3. Last resort: the newest image in a folder whose name contains `screenshot`.
+
+For `local: false` entries, only the table folder's own images and `auto/cloud/` are used.
+
+**Screenshot names**, in one `screenshots/` folder at the top of each repo (what the end-of-session block in `docs/cloud-wrapup.md` asks for):
+
+- `<id>-current.png` is the owner's pick. There's only ever one: older picks are renamed to their date, never deleted. "Drop the current screenshot" renames it the same way.
+- `<id>-session.png` is the session's full-view capture (never a detail shot or an error page), replaced at each wrap-up.
+- Keep images under about 2 MB.
 
 The hover cycle shows up to `galleryMax` recent images from screenshot folders. Folders named in `gallerySkip` (`old`, `archive`) are left out.

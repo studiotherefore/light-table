@@ -14,8 +14,9 @@ One dark page at `http://localhost:8130` answers, at a glance: what's active, wh
 
 Your agent keeps it current:
 
-- **Update board** at the end of a session (or say "wrap up"): the agent rewrites the project's entry (now, next step, decisions, status) and screenshots the app.
+- **Wrap up** at the end of a session (say "wrap up"): the agent rewrites the project's entry (now, next step, decisions, status) and screenshots the app.
 - **Nightly sweep**: finds projects whose files changed, updates just those from their docs and git log, refreshes screenshots, rebuilds the board.
+- **Cloud sessions**: work pushed to GitHub from a cloud session, another account or another machine reaches the board too. The sweep reads it (read-only, through `gh`), and tells you if the branch isn't merged yet. Paste one end-of-session block into those projects' `CLAUDE.md`: see [docs/cloud-wrapup.md](docs/cloud-wrapup.md).
 
 Everything runs on your Mac. Status lives in one file in your own table folder (`~/.light-table/projects.json`); **your project folders are only ever read.**
 
@@ -41,7 +42,7 @@ In Claude Code:
 
 Then ask: **"Set up Light Table."** The agent asks which folder holds your projects, reads each one's README / CLAUDE.md / handoff notes, drafts an entry for each (anything it guessed is marked "unconfirmed"), lets you correct the list, and opens the board.
 
-Optional: **one row of buttons above the prompt** (Open, App, Local, Live, Update board, Board, Hide) and automatic dev-server restarts. This uses an early-access Claude Code API that still changes. See [claude/panel/README.md](claude/panel/README.md).
+Optional: **one row of buttons above the prompt** (Open, App, Local, Live, Board, Hide, plus the decisions list) and automatic dev-server restarts. This uses an early-access Claude Code API that still changes. See [claude/panel/README.md](claude/panel/README.md).
 
 ## Install for Codex
 
@@ -57,7 +58,7 @@ Then, in Codex: **"Set up Light Table."** See [codex/README.md](codex/README.md)
 | You want to | Say (or press) |
 |---|---|
 | See the board | "Open my board" (or **Board**) |
-| Record where a project stands | "Wrap up" (or **Update board**) |
+| Record where a project stands | "Wrap up" |
 | Catch up every project now | "Run the Light Table sweep" |
 | Choose a project's cover image | Name an image in its folder `…current….png` |
 | Keep headless screenshots off for a project | Set `"autoCapture": false` on its entry |
@@ -67,7 +68,7 @@ The nightly sweep: [schedule/README.md](schedule/README.md).
 ## What's where
 
 ```
-core/        the board: build.py, server.py, sweep.py, snap.py, open.py, template.html
+core/        the board: build.py, server.py, sweep.py, cloud.py, snap.py, open.py, template.html
              config.example.json, projects.example.json, RECORD.md (every field and rule)
 skills/      light-table-setup, -wrap-up, -sweep, -open (shared by Claude Code and Codex)
 demo/        an invented board to try it out (the image above)

@@ -102,7 +102,8 @@ def find_current(folder):
     if not os.path.isdir(folder):
         return None
     for dirpath, dirnames, filenames in os.walk(folder):
-        dirnames[:] = [d for d in dirnames if d not in SKIP_DIRS and not d.startswith(".") and not d.endswith(".app")]
+        dirnames[:] = [d for d in dirnames if d not in SKIP_DIRS and (d == ".board" or not d.startswith("."))
+                       and not d.endswith(".app")]
         for f in filenames:
             if "current" in f.lower() and f.lower().endswith(IMG_EXT):
                 p = os.path.join(dirpath, f)
@@ -114,9 +115,12 @@ def find_current(folder):
 def choose_image(p, folder):
     """Pick the card image and say where it came from.
 
-    1. a file named "...current..." in the project (the owner's pick). It always wins,
-       even over a newer board update or auto capture.
-    2. otherwise the newest of the board-update capture (shots/) and the auto-capture (auto/)
+    1. a file named "...current..." in the project, or one fetched from its GitHub
+       branch (the owner's pick). It always wins, even over a newer board update or
+       auto capture.
+    2. otherwise the newest of the board-update capture (shots/), the auto-capture (auto/),
+       a cloud session's capture (auto/cloud/, fetched by cloud.py) and the session
+       capture in the project itself (screenshots/*session*, or the older .board/shot.*)
     3. last resort: the newest image in a screenshots folder ("older image")
     """
     def newest(paths):
@@ -125,12 +129,20 @@ def choose_image(p, folder):
 
     shot = newest([table_path("shots", p["id"] + e) for e in (".png", ".jpg", ".jpeg")])
     auto = table_path("auto", p["id"] + ".png")
-    current = find_current(folder) if os.path.isdir(folder) else None
-    label = {shot: "board update", auto: "auto capture", current: "your pick"}
-    pick = current or newest([shot, auto])
+    cloud_dir = table_path("auto", "cloud")
+    cloud = newest([os.path.join(cloud_dir, p["id"] + e) for e in IMG_EXT])
+    if p.get("local") is False:  # the local copy is old: only the board's own and GitHub's images
+        folder = ""
+    board = newest([os.path.join(folder, ".board", "shot" + e) for e in IMG_EXT]
+                   + glob.glob(os.path.join(glob.escape(folder), "screenshots", "*session*"))) if folder else None
+    current = newest([find_current(folder) if os.path.isdir(folder) else None]
+                     + [os.path.join(cloud_dir, p["id"] + "-current" + e) for e in IMG_EXT])
+    label = {shot: "board update", auto: "auto capture", cloud: "cloud capture",
+             board: "session capture", current: "your pick"}
+    pick = current or newest([shot, auto, cloud, board])
     if pick:
         return pick, label[pick]
-    recorded = os.path.join(ROOT, p["screenshot"]) if p.get("screenshot") else None
+    recorded = os.path.join(ROOT, p["screenshot"]) if p.get("screenshot") and folder else None
     old = newest([recorded, newest_screenshot(folder) if os.path.isdir(folder) else None])
     return (old, "older image") if old else (None, None)
 
@@ -159,6 +171,25 @@ def thumb_data_uri(src, pid):
         return "data:image/jpeg;base64," + base64.b64encode(fh.read()).decode()
 
 
+def remote(p):
+    """A project whose current copy is only on GitHub (`"local": false`): the title
+    opens the live site, Notes opens the handoff on the newest branch, and the local
+    copy's Local, App and Finder buttons are left off."""
+    for k in ("localUrl", "server", "app"):
+        p.pop(k, None)
+    p["remote"] = True
+    p["titleUrl"] = p.get("liveUrl") or ("https://github.com/" + p["github"] if p.get("github") else None)
+    try:
+        with open(table_path("auto", "cloud", p["id"] + ".json")) as fh:
+            seen = json.load(fh)
+    except (OSError, ValueError):
+        seen = {"repo": p.get("github"), "branch": None}
+    if seen.get("repo") and p.get("handoff", "").startswith(p["folder"] + "/"):
+        rel = p["handoff"][len(p["folder"]) + 1:]
+        p["notesUrl"] = f"https://github.com/{seen['repo']}/blob/{quote(seen['branch'] or 'HEAD')}/{quote(rel)}"
+        p["notesBranch"] = seen.get("branch")
+
+
 def shift_demo_dates(data):
     """Demo boards: move every date so the newest entry reads as today, and ignore
     file dates (a fresh clone makes every file look changed today)."""
@@ -185,21 +216,26 @@ def main():
     used = set()
     for p in data["projects"]:
         folder = os.path.join(ROOT, p["folder"])
+        if p.get("local") is False:
+            folder = ""  # the local copy is old; remote() fills in the links
         # Clicking a project's title opens its latest agent session, or starts a new
         # one in its folder when it has none (when the agent supports that).
         if os.path.isdir(folder):
             p.update(sessions.describe(agent.link(folder)))
-        p["exists"] = os.path.exists(folder)
-        m = newest_mtime(folder) if p["exists"] else 0
+        p["exists"] = os.path.exists(folder) or p.get("local") is False
+        m = newest_mtime(folder) if folder and p["exists"] else 0
         p["filesChanged"] = datetime.date.fromtimestamp(m).isoformat() if m else None
 
         src, p["imageSource"] = choose_image(p, folder)
         p["image"] = thumb_data_uri(src, p["id"]) if src else None
-        gallery = [gallery_thumb(g) for g in gallery_sources(folder, src)] if src else []
+        gallery = [gallery_thumb(g) for g in gallery_sources(folder, src)] if src and folder else []
         p["gallery"] = [{"src": url, "tall": tall} for url, tall, _ in gallery]
         used.update(name for _, _, name in gallery)
         p["imageDate"] = datetime.date.fromtimestamp(os.path.getmtime(src)).isoformat() if src else None
 
+        if p.get("local") is False:
+            remote(p)
+            continue
         p["folderUrl"] = "file://" + quote(folder)
         # A built app the App button launches (may be a link into a build cache).
         p["appReady"] = bool(p.get("app")) and os.path.isdir(os.path.join(ROOT, p["app"]))

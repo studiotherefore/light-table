@@ -9,6 +9,7 @@ type Table = { core: string; home: string; record: string; root: string | null; 
 const project = atom({ plugin: 'light-table-panel', key: 'project' } as const, null)
 const server = atom({ plugin: 'light-table-panel', key: 'server' } as const, 'unknown')
 const appRunning = atom({ plugin: 'light-table-panel', key: 'appRunning' } as const, false)
+const decisionsOpen = atom({ plugin: 'light-table-panel', key: 'decisionsOpen' } as const, false)
 const isCollapsed = atom({ plugin: 'light-table-panel', key: 'isCollapsed' } as const, false)
 
 // Set when a restart has been asked for during the current outage; cleared as soon
@@ -160,6 +161,8 @@ export const register: Register = (on, options) => {
   // The first message after an outage: restart the server before anything else.
   on('prompt.submit', async ($, e, next) => {
     if (e.origin?.kind === 'plugin') return next(e)
+    // Sending a message folds the decisions list away.
+    if (await read($, decisionsOpen)) await update($, decisionsOpen, () => false)
     const p = await read($, project)
     if (!p?.server || hasAskedRestart) return next(e)
     const s = await checkServer($, p)
@@ -177,7 +180,7 @@ export const register: Register = (on, options) => {
     const collapsed = await read($, isCollapsed)
 
     const openBoard = async () => {
-      $.ui.toast('Opening the board…')
+      $.ui.toast('Opening Light Table…')
       try {
         if (!table) table = await loadTable($)
         if (!table) {
@@ -241,7 +244,7 @@ export const register: Register = (on, options) => {
     }
     const wrap = async () => {
       const cur = await read($, project)
-      sendToClaude($, wrapText(), cur ? `Updating ${cur.name} on the board…` : 'Adding this folder to the board…')
+      sendToClaude($, wrapText(), cur ? `Updating ${cur.name} on Light Table…` : 'Adding this folder to Light Table…')
     }
 
     // Draw this row, then whatever other plugins put above the prompt underneath,
@@ -279,31 +282,66 @@ export const register: Register = (on, options) => {
       )
     }
 
-    // A project: one line. Who/where on the left (next step trimmed to fit), buttons on the right.
+    // A project: one line. Who/where on the left, ways in and the board on the right.
     const decisions = p.calls?.length ?? 0
+    const open = await read($, decisionsOpen)
+    const toggle = () => update($, decisionsOpen, v => !v)
 
-    return stack(
+    // Hide reads "Hide" while everything fits on the row, "–" once it doesn't. The desktop
+    // reports the width in cells (85 in a 1468 pt window); taken as about 9 pt each
+    // (an estimate: tune the 9 if it switches too early or late).
+    const cols: number = e.props.bodyColumns ?? 200
+    const ways = [p.open && 'Open', p.app && 'App', p.server && 'Local', p.liveUrl && 'Live'].filter(Boolean) as string[]
+    const countText = decisions > 0 ? `${decisions} decision${decisions === 1 ? '' : 's'}` : ''
+    const rowPt = 28 + 20 + p.name.length * 8.5 + (decisions > 0 ? 16 + countText.length * 7.5 + 14 : 0)
+      + 16 + ways.reduce((n, w) => n + w.length * 7.5 + 24 + 8, 0) + 26 + 8 + 34
+    const room = cols * 9
+    const hideLabel = room >= rowPt ? 'Hide' : '\u2013'
+    // Narrower still: the count drops its word ("1 ›") so the title is never cut.
+    const countLabel = room >= rowPt - 34 + 20 ? countText : String(decisions)
+
+    const row = (
+      // Always one row. As it narrows the Next text gives way first, then Hide becomes
+      // "–", then the count drops its word. The title is never cut; the buttons never move.
       <Box flexDirection="row" gap={2} alignItems="center" justifyContent="space-between">
-        {/* Name, light and count keep their size; only the next step gives way. */}
-        <Box flexDirection="row" gap={2} flexGrow={1} flexShrink={1} minWidth={0} alignItems="center">
-          <Box flexShrink={0}><Text bold wrap="truncate">∴{" "}{p.name}</Text></Box>
+        <Box flexDirection="row" gap={2} flexGrow={1} flexShrink={1} minWidth={0} overflow="hidden" alignItems="center">
+          <Box flexShrink={0}><Text bold>∴{"\u2002"}{p.name}</Text></Box>
           {decisions > 0 && (
-            <Box flexShrink={0}><Text wrap="truncate" color="#a598e6">{decisions} decision{decisions === 1 ? '' : 's'}</Text></Box>
+            <Box flexDirection="row" flexShrink={0} alignItems="center">
+              <Text color="#a598e6">{countLabel}</Text>
+              {/* The count keeps its colour as text; the small glyph beside it is what opens the list. */}
+              <Button key="decisions" label={open ? "\u2304" : "\u203a"} plain dimColor onPress={toggle} />
+            </Box>
           )}
           {p.nextStep && (
-            <Box flexShrink={1} minWidth={0}><Text dimColor wrap="truncate">Next: {p.nextStep}</Text></Box>
+            <Box flexShrink={100} minWidth={0}><Text dimColor wrap="truncate">Next: {p.nextStep}</Text></Box>
           )}
         </Box>
-        <Box flexDirection="row" gap={1} flexShrink={0}>
+        <Box flexDirection="row" gap={1} flexShrink={0} alignItems="center">
           {/* Ways in. Local is the bright one while its server is down: pressing it starts it. */}
           {p.open && <Button key="open" label="Open" variant="secondary" onPress={openCustom} />}
           {p.app && <Button key="app" label="App" variant="secondary" onPress={openApp} />}
           {p.server && <Button key="local" label="Local" variant={s === 'down' ? 'primary' : 'secondary'} onPress={openLocal} />}
           {p.liveUrl && <Button key="live" label="Live" variant="secondary" onPress={openLive} />}
-          <Button key="wrap" label="Update board" variant="secondary" onPress={wrap} />
-          <Button key="board" label="Board" onPress={openBoard} />
-          <Button key="hide" label="Hide" dimColor onPress={() => update($, isCollapsed, () => true)} />
+          <Button key="board" label={"\u283f"} plain dimColor onPress={openBoard} />
+          <Button key="hide" label={hideLabel} plain dimColor onPress={() => update($, isCollapsed, () => true)} />
         </Box>
+      </Box>
+    )
+
+    if (!open || decisions === 0) return stack(row)
+
+    // Decisions open: the strip grows upward. Each decision on its own line, then the full next step.
+    return stack(
+      <Box flexDirection="column">
+        {p.calls.map((c, i) => (
+          <Box key={`call-${i}`} flexDirection="row" gap={1}>
+            <Text color="#a598e6">·</Text>
+            <Text wrap="wrap">{c}</Text>
+          </Box>
+        ))}
+        {p.nextStep && <Box marginTop={1}><Text dimColor wrap="wrap">Next: {p.nextStep}</Text></Box>}
+        <Box marginTop={1}>{row}</Box>
       </Box>
     )
   })

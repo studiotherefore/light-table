@@ -4,12 +4,15 @@ One row above the prompt in every Claude Code session.
 
 **In a project on the board**, from left to right:
 
-- **∴ name** and the number of decisions waiting on you
+- **∴ name** and the number of decisions waiting on you. The small **›** beside the count opens the list: the row grows upward with one line per decision and the full next step. Sending a message folds it away
 - **Next:** the next step, shortened to fit
 - **Open**, **App**, **Local**, **Live**: one button per way into the project, each shown only when the project has it. **Open** opens the record's hand-set `open`, **App** launches the built app, **Live** opens the deployed site. **Local** opens the local page; while its server is down it's the bright button, and pressing it asks Claude to start the server and opens the page once it answers
-- **Update board**: runs the `light-table-wrap-up` skill
-- **Board**: rebuilds the board, starts its server if needed, opens it
-- **Hide**: folds the row down to a small **∴ Light Table**
+- **⠿** (Board): rebuilds the board, starts its server if needed, opens it
+- **Hide** (**–** in a narrow window): folds the row down to a small **∴ Light Table**
+
+It always stays one row. As the window narrows, the next step gives way first, then Hide turns into **–**, then the count drops its word. The name is never cut and the buttons never move.
+
+To record a session, say "wrap up" (the `light-table-wrap-up` skill). The nightly sweep catches up the rest.
 
 **In a folder that isn't on the board**, just a small **∴ Add to board**.
 

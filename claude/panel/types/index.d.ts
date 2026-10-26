@@ -21,6 +21,7 @@ declare module 'claude-code' {
       project: Project | null
       server: ServerState
       appRunning: boolean
+      decisionsOpen: boolean
       isCollapsed: boolean
     }
   }

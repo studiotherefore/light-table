@@ -17,7 +17,7 @@ To refresh a project right away, any time, say "wrap up" or run `/light-table:li
 
 **In a folder that isn't on the board**, just a small **∴ Add to board**.
 
-It also restarts a project's dev server by itself when you come back to a session (or send the first message) and the server has stopped. Every 20 seconds it checks the server and re-reads the record, so a project you just added shows up without a restart.
+It doesn't restart a stopped dev server by itself: the **Local** button is bright while the server is down, and pressing it starts the server and opens the page when it's up. A project can opt in with `"autoStart": true` in its record entry (see `core/RECORD.md`); then the panel restarts it when a session starts, when you come back to the session, or with your first message after an outage. Every 20 seconds it checks the server and re-reads the record, so a project you just added shows up without a restart.
 
 **Early access.** The panel uses Claude Code's function-hooks API, which still changes between releases. If an update breaks it, the skills keep working. Turn the panel off and use them by asking ("wrap up", "open my board").
 

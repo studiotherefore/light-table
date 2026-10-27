@@ -140,8 +140,9 @@ export const register: Register = (on, options) => {
   on('session.start', async ($, e, next) => {
     const ran = await next(e)
     const { p, s } = await refresh($)
-    // Coming into a project whose server isn't running: bring it back without being asked.
-    if (e.isInteractive && p?.server && s === 'down' && !hasAskedRestart) {
+    // Servers start from the Local button. Only a project with "autoStart": true in the
+    // record is brought back without being asked (each ask is a message in the chat).
+    if (e.isInteractive && p?.server && p.autoStart && s === 'down' && !hasAskedRestart) {
       hasAskedRestart = true
       void $.prompt.submit({ text: restartText(p) })
     }
@@ -164,11 +165,17 @@ export const register: Register = (on, options) => {
     return ran
   })
 
-  // The app reattaching to an idle session (you came back to it): restart a stopped server.
+  // The app reattaching to an idle session (you came back to it): restart a stopped
+  // server ("autoStart" projects only), else just refresh the light.
   on('session.attach', async ($, e, next) => {
     const ran = await next(e)
     const p = await read($, project)
-    if (!p?.server || hasAskedRestart) return ran
+    if (!p?.server) return ran
+    if (!p.autoStart || hasAskedRestart) {
+      const s = await checkServer($, p)
+      await update($, server, () => s)
+      return ran
+    }
     const s = await checkServer($, p)
     await update($, server, () => s)
     if (s === 'down') {
@@ -178,13 +185,13 @@ export const register: Register = (on, options) => {
     return ran
   })
 
-  // The first message after an outage: restart the server before anything else.
+  // The first message after an outage: restart the server before anything else ("autoStart" projects only).
   on('prompt.submit', async ($, e, next) => {
     if (e.origin?.kind === 'plugin') return next(e)
     // Sending a message folds the decisions list away.
     if (await read($, decisionsOpen)) await update($, decisionsOpen, () => false)
     const p = await read($, project)
-    if (!p?.server || hasAskedRestart) return next(e)
+    if (!p?.server || !p.autoStart || hasAskedRestart) return next(e)
     const s = await checkServer($, p)
     await update($, server, () => s)
     if (s !== 'down') return next(e)

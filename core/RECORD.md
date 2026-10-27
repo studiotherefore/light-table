@@ -31,6 +31,7 @@ See `projects.example.json` for a filled-in example.
 | `handoff` | setup / agent | Path (relative to the root) of the project's main handoff/notes file, if any. The board's Handoff button opens it. |
 | `app` | setup / agent | Path (relative to the root) of a built `.app`, if the project has one. It may be a link into a build cache. Cards show an **App** button that launches it. |
 | `open` | owner | Optional. A URL, or a path relative to the root, for anything the other links don't cover. The panel shows an **Open** button for it. |
+| `autoStart` | owner | Optional. `true` makes the panel restart this project's stopped dev server by itself (when a session starts, when you come back to it, or with your first message). Off by default: otherwise the **Local** button starts it. |
 | `screenshot` | setup | Optional fallback image path (relative to the root). |
 | `autoCapture` | owner | `false` keeps headless captures off for projects where they only show a loading, login or audio-gate screen. |
 | `sweep` | owner | `false` makes the nightly sweep skip this entry (for example the board's own entry, which you update by hand). |

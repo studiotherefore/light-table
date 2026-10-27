@@ -11,6 +11,8 @@ export type Project = {
   liveUrl?: string | null
   /** Optional: what the panel's Open button opens (a URL, or a path relative to the root). Set by hand. */
   open?: string | null
+  /** Optional: true = restart a stopped server on its own (session start, coming back, first message). Off by default. Set by hand. */
+  autoStart?: boolean
 }
 
 export type ServerState = 'none' | 'up' | 'down' | 'unknown'

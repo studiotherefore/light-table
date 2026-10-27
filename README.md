@@ -42,7 +42,7 @@ In Claude Code:
 
 Then ask: **"Set up Light Table."** The agent asks which folder holds your projects, reads each one's README / CLAUDE.md / handoff notes, drafts an entry for each (anything it guessed is marked "unconfirmed"), lets you correct the list, and opens the board.
 
-Optional: **one row of buttons above the prompt** (Open, App, Local, Live, Board, Hide, plus the decisions list) and automatic dev-server restarts. This uses an early-access Claude Code API that still changes. See [claude/panel/README.md](claude/panel/README.md).
+Optional: **one row of buttons above the prompt** (Open, App, Local, Live, Board, Hide, plus the decisions list). Its Local button starts a stopped dev server. This uses an early-access Claude Code API that still changes. See [claude/panel/README.md](claude/panel/README.md).
 
 ## Codex
 

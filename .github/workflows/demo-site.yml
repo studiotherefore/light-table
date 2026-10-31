@@ -1,0 +1,41 @@
+# Publishes the demo board as a read-only website on GitHub Pages.
+# Rebuilt daily too: demo mode shifts the dates at build time, so the newest project keeps reading "today".
+name: Demo site
+
+on:
+  push:
+    branches: [main]
+    paths: ["core/**", "demo/**", ".github/workflows/demo-site.yml"]
+  schedule:
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    # macOS: build.py makes the thumbnails with sips.
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 demo/export-site.py _site
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

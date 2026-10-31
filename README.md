@@ -1,6 +1,8 @@
 # Light Table
 
-A local board of all your projects, kept current by your coding agent.
+A local board of all your projects, kept current by your coding agent. For Mac, with Claude Code.
+
+**[See the demo board →](https://studiotherefore.github.io/light-table/)** (invented projects, read-only, nothing to install)
 
 ![Light Table showing invented example projects: active cards with screenshots, next steps and decisions, and a resting list below](docs/board.jpg)
 
@@ -20,11 +22,16 @@ Your agent keeps it current:
 
 Everything runs on your Mac. Status lives in one file in your own table folder (`~/.light-table/projects.json`); **your project folders are only ever read.**
 
-Requirements: macOS, Python 3 (built in), Google Chrome for automatic screenshots (optional), and Claude Code.
+## What you need
 
-## Try the demo first
+- **A Mac.** Light Table doesn't run on Windows or Linux yet.
+- **Claude Code**, in the [Claude desktop app](https://claude.ai/download) (its Code tab) or in Terminal.
+- **Python 3.** The first time anything runs `python3`, macOS may offer to install Apple's command line developer tools, a free download of a few minutes. Say yes; that includes Python 3.
+- **Google Chrome**, optional, for automatic screenshots of your projects.
 
-Clone the repo and open the demo board: invented projects, no setup.
+## Try the demo on your Mac
+
+The [demo board](https://studiotherefore.github.io/light-table/) is online. To run it on your own Mac, with dragging and notes working, clone the repo and open it:
 
 ```bash
 git clone https://github.com/studiotherefore/light-table && cd light-table
@@ -33,7 +40,9 @@ LIGHT_TABLE_HOME=demo/table python3 core/open.py
 
 ## Install for Claude Code
 
-In Claude Code:
+1. Put your projects in one folder (subfolders are fine), e.g. `~/Projects`. Light Table only reads them.
+2. Open Claude Code in any folder: in the desktop app, open the **Code** tab and start a session.
+3. Type these two lines, one at a time:
 
 ```
 /plugin marketplace add studiotherefore/light-table
@@ -81,3 +90,20 @@ Your table folder (`~/.light-table`, or `$LIGHT_TABLE_HOME`) holds `config.json`
 - Agents never move your cards: `shelf` and `rank` are yours.
 - Backup is off unless you make the table folder a Git repo with your own private remote.
 - The record holds your project names, notes, people and deadlines. Don't put your table folder in a public repo.
+- Found a security problem? See [SECURITY.md](SECURITY.md).
+
+## If something goes wrong
+
+- **The board doesn't open.** Ask Claude "open my board": it starts the board's small server if needed. If another program already uses port 8130, set a different `"port"` in `~/.light-table/config.json`.
+- **No screenshots on the cards.** Automatic screenshots need Google Chrome, and a project needs a live site or a running local server. Or choose a cover yourself: name an image in the project's folder `…current….png`.
+- **A card is out of date.** Say "wrap up" in a session in that project's folder, or run the sweep.
+- **The nightly sweep stops.** A scheduled run waits silently when it hits an approval prompt. Run it once by hand with **Run now** and choose **Always allow** for each command (see [schedule/README.md](schedule/README.md)).
+- **Something else:** [open an issue](https://github.com/studiotherefore/light-table/issues/new/choose). Don't paste your `projects.json` or a screenshot of your own board there: issues are public.
+
+## Uninstall
+
+1. In Claude Code: `/plugin uninstall light-table@light-table` (and `light-table-panel@light-table` if you added the panel).
+2. If you set up the nightly sweep, delete its scheduled task in the Claude app (or unload the launchd job, see [schedule/README.md](schedule/README.md)).
+3. Your board and notes are in `~/.light-table`. Delete that folder to remove them too. Your project folders were never changed.
+
+Light Table is a personal project, shared as is under the MIT license. Issues and ideas are welcome; fixes come as time allows.

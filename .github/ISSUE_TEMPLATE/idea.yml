@@ -1,0 +1,10 @@
+name: An idea
+description: Something Light Table could do for the way you work
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would help
+      description: Describe the situation first (what you were doing, what was missing), then the idea.
+    validations:
+      required: true

@@ -1,0 +1,44 @@
+name: Something isn't working
+description: The board, a skill or the panel did something unexpected
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for writing. Please don't paste your `projects.json` or screenshots of your own board here: they hold your project names and notes, and issues are public.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what you saw instead.
+    validations:
+      required: true
+  - type: dropdown
+    id: part
+    attributes:
+      label: Which part
+      options:
+        - The board page
+        - Setup
+        - Wrap up
+        - Nightly sweep
+        - The panel above the prompt
+        - Screenshots
+        - Something else
+    validations:
+      required: true
+  - type: input
+    id: macos
+    attributes:
+      label: macOS version
+      placeholder: "e.g. 26.1"
+  - type: input
+    id: claude
+    attributes:
+      label: Claude Code version, and where you run it
+      placeholder: "e.g. 2.3.0 in the Claude desktop app"
+  - type: textarea
+    id: output
+    attributes:
+      label: Any error message
+      description: Copy it as text if you can. Check it for your own folder and project names first.
+      render: text

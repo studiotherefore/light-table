@@ -31,7 +31,7 @@ Everything runs on your Mac. Status lives in one file in your own table folder (
 
 ## Try the demo on your Mac
 
-The [demo board](https://studiotherefore.github.io/light-table/) is online. To run it on your own Mac, with dragging and notes working, clone the repo and open it:
+The [demo board](https://studiotherefore.github.io/light-table/) is online. To run it on your own Mac, with dragging and notes working, open **Terminal** (in Applications → Utilities) and paste these two lines. The first downloads Light Table into your home folder; the second opens the demo in your browser.
 
 ```bash
 git clone https://github.com/studiotherefore/light-table && cd light-table
@@ -106,4 +106,4 @@ Your table folder (`~/.light-table`, or `$LIGHT_TABLE_HOME`) holds `config.json`
 2. If you set up the nightly sweep, delete its scheduled task in the Claude app (or unload the launchd job, see [schedule/README.md](schedule/README.md)).
 3. Your board and notes are in `~/.light-table`. Delete that folder to remove them too. Your project folders were never changed.
 
-Light Table is a personal project, shared as is under the MIT license. Issues and ideas are welcome; fixes come as time allows.
+Light Table is a personal project, shared as is under the [MIT license](LICENSE). Issues and ideas are welcome (see [CONTRIBUTING.md](CONTRIBUTING.md)); fixes come as time allows.

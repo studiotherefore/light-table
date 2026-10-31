@@ -6,6 +6,8 @@ on:
   push:
     branches: [main]
     paths: ["core/**", "demo/**", ".github/workflows/demo-site.yml"]
+  pull_request:
+    paths: ["core/**", "demo/**", ".github/workflows/demo-site.yml"]
   schedule:
     - cron: "17 6 * * *"
   workflow_dispatch:
@@ -16,7 +18,8 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages
+  # Pull requests only build (to check the export); main publishes, one deploy at a time.
+  group: ${{ github.event_name == 'pull_request' && github.ref || 'pages' }}
   cancel-in-progress: true
 
 jobs:
@@ -31,6 +34,7 @@ jobs:
           path: _site
 
   deploy:
+    if: github.event_name != 'pull_request'
     needs: build
     runs-on: ubuntu-latest
     environment:

@@ -1,15 +1,15 @@
 {
-  "name": "light-table-demo-video",
+  "name": "studiowall-demo-video",
   "private": true,
-  "description": "The Light Table demo video, made with Remotion from the invented demo board.",
+  "description": "The StudioWall demo videos, made with Remotion from the invented demo board.",
   "license": "MIT",
   "type": "module",
   "scripts": {
     "capture": "node scripts/capture.mjs",
     "studio": "remotion studio",
-    "render": "remotion render LightTableDemo out/light-table-demo.mp4",
-    "render:long": "remotion render LightTableTour out/light-table-tour.mp4",
-    "still": "remotion still LightTableDemo out/poster.png --frame=60"
+    "render": "remotion render StudioWallDemo out/studiowall-demo.mp4",
+    "render:long": "remotion render StudioWallTour out/studiowall-tour.mp4",
+    "still": "remotion still StudioWallDemo out/poster.png --frame=60"
   },
   "dependencies": {
     "@fontsource-variable/archivo": "5.1.1",

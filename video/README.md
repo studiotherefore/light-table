@@ -1,9 +1,9 @@
 # Demo videos
 
-Two videos of Light Table, made with [Remotion](https://www.remotion.dev) from the invented demo board. Nothing in them comes from a real board.
+Two videos of StudioWall, made with [Remotion](https://www.remotion.dev) from the invented demo board. Nothing in them comes from a real board.
 
-- **LightTableDemo**: the short one, about 50 seconds, 1920×1080, silent. Its scenes are below.
-- **LightTableTour**: the long one, about 4½ minutes, in nine chapters (one page, install, set up, on the board, wrap up, the panel, every night, cloud sessions, privacy). It reuses the short video's scenes and adds real screen recordings of Claude Code: see [RECORDING.md](RECORDING.md) for the shot list. Until a recording is in, its slot shows a placeholder card.
+- **StudioWallDemo**: the short one, about 50 seconds, 1920×1080, silent. Its scenes are below.
+- **StudioWallTour**: the long one, about 4½ minutes, in nine chapters (one page, install, set up, on the board, wrap up, the panel, every night, cloud sessions, privacy). It reuses the short video's scenes and adds real screen recordings of Claude Code: see [RECORDING.md](RECORDING.md) for the shot list. Until a recording is in, its slot shows a placeholder card.
 
 | Scene | What it shows |
 |---|---|
@@ -20,8 +20,8 @@ Needs Node 18 or newer. From this folder:
 ```bash
 npm install
 npm run studio       # preview and scrub through both in the browser
-npm run render       # the short one: out/light-table-demo.mp4
-npm run render:long  # the long one: out/light-table-tour.mp4
+npm run render       # the short one: out/studiowall-demo.mp4
+npm run render:long  # the long one: out/studiowall-tour.mp4
 ```
 
 In the Studio, pick a video on the left. Step a frame at a time with the arrow keys; each scene is its own block on the timeline.
@@ -41,6 +41,7 @@ That builds the demo board twice in a temporary folder (as it is, and with Tide 
 - **Words and timings: `src/script.ts`**, the cue sheet. Every caption, every scene length and every beat is there, in seconds. Change a line, save, and the Studio redraws.
 - Adding or reordering chapters of the long video: the `LONG.parts` list in the same file. A part can be one of the short video's scenes, a chapter card, a list of points, or a recording slot.
 - How a scene moves: its file under `src/scenes/`.
+- The name and links: `src/product.json`. After renaming, run `npm run capture` so the board shots carry the new name too. (The repo, plugin and skill names still say light-table until the repo itself is renamed.)
 - Colours and type: `src/theme.ts`, taken from the board's own `core/template.html`.
 - Sound: there is none yet. Add an `<Audio>` in `src/Root.tsx` to score it.
 

@@ -56,7 +56,7 @@ const LongVideo: React.FC = () => (
 
 export const Root: React.FC = () => (
   <>
-    <Composition id="LightTableDemo" component={Video} durationInFrames={LENGTH} fps={FPS} width={1920} height={1080} />
-    <Composition id="LightTableTour" component={LongVideo} durationInFrames={LONG_LENGTH} fps={FPS} width={1920} height={1080} />
+    <Composition id="StudioWallDemo" component={Video} durationInFrames={LENGTH} fps={FPS} width={1920} height={1080} />
+    <Composition id="StudioWallTour" component={LongVideo} durationInFrames={LONG_LENGTH} fps={FPS} width={1920} height={1080} />
   </>
 );

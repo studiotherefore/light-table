@@ -2,6 +2,11 @@
 // Times are in seconds. Change a line, save, and the Studio redraws.
 // (Colours and type live in theme.ts; how each scene moves lives in scenes/.)
 
+// The product's name and addresses are in product.json: one edit renames both videos
+// and the board shots (run `npm run capture` after changing the name).
+import PRODUCT from "./product.json";
+export { PRODUCT };
+
 export const SHORT = {
   // Scenes in order, and how long each one runs. Neighbouring scenes overlap by `fade`.
   fade: 0.5,
@@ -15,7 +20,7 @@ export const SHORT = {
 };
 
 export const TITLE = {
-  name: "Light Table",
+  name: PRODUCT.name,
   line: "Every project on one page.",
   aside: "for Mac · with Claude Code",
 };
@@ -69,11 +74,11 @@ export const SWEEP = {
 };
 
 export const OUTRO = {
-  name: "Light Table",
+  name: PRODUCT.name,
   line: "A board of all your projects, kept current by Claude Code.",
   links: [
-    { label: "get it", text: "github.com/studiotherefore/light-table" },
-    { label: "try it", text: "studiotherefore.github.io/light-table", accent: true },
+    { label: "get it", text: PRODUCT.repo },
+    { label: "try it", text: PRODUCT.demo, accent: true },
   ],
   small: "Free and open source (MIT) · for Mac · runs on your machine",
 };
@@ -107,8 +112,8 @@ export const LONG: { fade: number; chapterLength: number; parts: Part[] } = {
       captions: [{ at: 1, text: "Add the marketplace, then install the plugin." }] },
 
     { type: "chapter", n: "03", title: "Set up", line: "Claude reads your projects and drafts the board." },
-    { type: "recording", id: "setup", title: "“Set up Light Table”", length: 45,
-      what: "Say “Set up Light Table”. Choose the demo projects folder, let Claude read them, accept the list, and let the board open.",
+    { type: "recording", id: "setup", title: `“Set up ${PRODUCT.name}”`, length: 45,
+      what: `Say “Set up ${PRODUCT.name}”. Choose the demo projects folder, let Claude read them, accept the list, and let the board open.`,
       captions: [
         { at: 1, text: "Point it at the folder that holds your projects." },
         { at: 16, text: "It reads each project's README, notes and git history. Only reads." },

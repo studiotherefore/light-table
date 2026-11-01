@@ -15,6 +15,8 @@ import { fileURLToPath } from "node:url";
 import { chromium } from "playwright-core";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
+// The name shown at the top of the board in the shots.
+const NAME = JSON.parse(fs.readFileSync(path.join(HERE, "..", "src", "product.json"), "utf8")).name;
 const REPO = path.resolve(HERE, "..", "..");
 const OUT = path.resolve(HERE, "..", "public", "board");
 const CHROME = process.env.CHROME_PATH || "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
@@ -30,12 +32,14 @@ const BEFORE = {
 };
 
 function build(name, change) {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), `light-table-video-${name}-`));
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), `studiowall-video-${name}-`));
   const table = path.join(tmp, "table"), projects = path.join(tmp, "projects");
   fs.cpSync(path.join(REPO, "demo", "projects"), projects, { recursive: true });
   fs.mkdirSync(table);
   for (const f of ["config.json", "projects.json", "notes.json"])
     fs.copyFileSync(path.join(REPO, "demo", "table", f), path.join(table, f));
+  const config = JSON.parse(fs.readFileSync(path.join(table, "config.json"), "utf8"));
+  fs.writeFileSync(path.join(table, "config.json"), JSON.stringify({ ...config, title: NAME }, null, 1));
   change?.(table, projects);
   execFileSync("python3", [path.join(REPO, "core", "build.py")],
     { env: { ...process.env, LIGHT_TABLE_HOME: table }, stdio: "inherit" });

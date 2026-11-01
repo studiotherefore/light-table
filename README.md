@@ -76,7 +76,7 @@ core/        the board: build.py, server.py, sweep.py, cloud.py, snap.py, open.p
              config.example.json, projects.example.json, RECORD.md (every field and rule)
 skills/      light-table-setup, -wrap-up, -sweep, -open (Agent Skills format)
 demo/        an invented board to try it out (the image above)
-video/       the demo video, made with Remotion from that invented board
+video/       the demo videos (short and long), made with Remotion from that invented board
 claude/      the optional Claude Code panel
 codex/       early Codex work (not supported yet)
 schedule/    nightly sweep through launchd for anyone without the Claude app's scheduler

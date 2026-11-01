@@ -26,7 +26,7 @@ If the scheduled task's prompt names a table folder, add it as the last argument
 - **Read-only everywhere except the table folder.** Never edit, create, delete, commit, push, merge, check out or deploy anything in a project folder. Git in project folders: read commands only (`log`, `show`, `branch`, `status`, `diff`).
 - Never start or stop servers. Never open a browser window (snap.py's own headless Chrome is fine).
 - Don't rewrite an entry that `sweep.py` or `cloud.py` didn't flag, except to add a missing `about` (step 4b).
-- **Never edit `notes.json`** in the table folder: those are the owner's own notes, typed on the board.
+- **Never edit `notes.json`** or `framing.json` in the table folder: those are the owner's own notes and cover framing, typed and set on the board.
 - **Never set, change or remove `shelf` or `rank`.** New entries get neither. Keep every field you aren't updating.
 - Don't invent. If the docs don't say, leave the field as it was and append ` (unconfirmed)` only to what you inferred.
 

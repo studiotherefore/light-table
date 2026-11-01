@@ -13,6 +13,7 @@ One dark page at `http://localhost:8130` answers, at a glance: what's active, wh
 - **Drag** cards between shelves and into your own order; it saves.
 - **Click a project's name** to open its latest Claude Code session (or start one in its folder).
 - **Hover** the stacked-frames icon to cycle through recent screenshots.
+- **Frame a cover** with the crop icon in its corner: drag to move, pinch or scroll to zoom, Fit to show it whole. Or hold ⌘ over any cover to drag, scroll or double-click (re-centre) directly. Only the view changes; the image file is never touched.
 
 Your agent keeps it current:
 

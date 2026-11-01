@@ -46,6 +46,7 @@ See `projects.example.json` for a filled-in example.
 
 - **Never set, change or remove `shelf` or `rank`.** New entries get neither; the board places them by status until the owner drags them.
 - **Never edit `notes.json`** in the table folder. It holds the owner's own notes, typed on the board (`{id: {text, updated}}`, up to 5000 characters each). Only the board's server writes it, and the build shows each note on its card.
+- **Never edit `framing.json`** in the table folder. It holds how the owner framed each cover on the board (`{id: {key, x, y, zoom, fit}}`, for that one image). Only the board's server writes it; the image files are never changed.
 - **Run `core/places.py restore` before rebuilding** after any edit to the record. `places.json` in the table folder keeps the owner's placements (the board refreshes it on every drag), and restore puts back anything an edit changed. If the owner asks you in chat to move a card, change its `shelf`/`rank`, then run `core/places.py save`.
 - **Don't invent.** If the project's docs don't say, leave the field as it was (or `null` for a new entry). Append ` (unconfirmed)` to anything inferred rather than read.
 - **Keep every field you aren't updating.**

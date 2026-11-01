@@ -74,6 +74,33 @@ h2 .n { font-family: var(--mono); color: var(--ink-3); letter-spacing: 0; }
 .shot img.layer { opacity: 0; transition: opacity .5s ease; }
 .shot img.layer.on { opacity: 1; }
 .shot img.fit { object-fit: contain; }
+/* The owner's framing of the cover: --fx / --fy (where the view sits in the distance it can travel),
+   --fz (zoom) and --ff (cover, or contain for Fit) on the .shot or .thumb. Used only by the cover
+   image (.framed), never by the hover-cycle's other shots. */
+.shot img.framed, .thumb img { object-fit: var(--ff, cover); object-position: var(--fx, 50%) var(--fy, 50%);
+  transform-origin: var(--fx, 50%) var(--fy, 50%); transform: scale(var(--fz, 1)); }
+body.cmd-held .slide .shot:has(img) { cursor: move; }
+.shot.framing img.layer, .shot.editing img.layer { transition: none !important; }
+
+/* Frame: a faint crop icon on the cover (on hover), and the framing mode it opens */
+.frame-btn { position: absolute; z-index: 3; top: 6px; right: 6px; display: grid; place-items: center; width: 26px; height: 26px;
+  border: 0; border-radius: 3px; padding: 0; background: rgba(10, 12, 15, .72); color: var(--ink-2); opacity: 0;
+  transition: opacity .2s ease, color .2s ease; cursor: pointer; }
+.slide:hover .frame-btn { opacity: .75; }
+.slide .frame-btn:hover, .slide .frame-btn:focus-visible { opacity: 1; color: var(--ink); }
+.frame-btn svg { width: 15px; height: 15px; }
+.shot.editing { outline: 1px solid var(--accent); outline-offset: -1px; cursor: grab; }
+.shot.editing.panning { cursor: grabbing; }
+.shot.editing .frame-btn, .shot.editing .src, .shot.editing .pips, .shot.editing .pill, .shot.editing::before { display: none; }
+.frame-bar { position: absolute; z-index: 4; left: 6px; right: 6px; bottom: 6px; display: flex; align-items: center; gap: 4px;
+  padding: 4px 6px; border-radius: 3px; background: rgba(10, 12, 15, .86); font: 500 11px/1 var(--mono); color: var(--ink-2);
+  cursor: default; }
+.frame-bar button { background: none; border: 0; padding: 4px 5px; border-radius: 2px; font: inherit; color: var(--ink-2); cursor: pointer; }
+.frame-bar button:hover { color: var(--ink); background: rgba(255, 255, 255, .06); }
+.frame-bar button[aria-pressed="true"], .frame-bar button.done { color: var(--accent); }
+.frame-bar input[type=range] { flex: 1; min-width: 30px; accent-color: var(--accent); }
+.frame-bar input:disabled { opacity: .35; }
+.frame-bar .sep { flex: 0 0 1px; align-self: stretch; background: var(--rule); margin: 0 2px; }
 
 /* hover-cycle: a faint icon left of the date plays the project's other screenshots */
 .cycle { background: none; border: 0; padding: 2px 3px; margin: 0; cursor: default; color: var(--ink-3);
@@ -168,7 +195,7 @@ h3 { margin: 0; font: 700 21px/1.15 var(--display); font-variation-settings: "wd
   padding: 8px 2px; border-bottom: 1px solid var(--rule); }
 .thumb { width: 72px; aspect-ratio: 16 / 10; border-radius: 2px; overflow: hidden; background: var(--sheet);
   display: grid; place-items: center; color: var(--rule); font: 300 20px/1 var(--display); }
-.thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.thumb img { width: 100%; height: 100%; display: block; }
 .row b { font-weight: 650; }
 .row .kind { margin: 2px 0 0; }
 .row .s { color: var(--ink-2); font-size: 14px; min-width: 0; }
@@ -251,7 +278,9 @@ a.session:hover .go { color: var(--accent); }
   .slide:hover { transform: translateY(-2px); transition-duration: .26s; }
   /* the slow drift, sharing the image layers with the cycle's crossfade */
   .shot img.layer { transition: opacity .5s ease, transform 1.4s cubic-bezier(.22, .7, .3, 1); }
-  .slide:hover .shot img.layer { transform: scale(1.02); transition: opacity .5s ease, transform 1.2s cubic-bezier(.22, .7, .3, 1); }
+  /* (not while framing: the hover scale would override the zoom being set) */
+  .slide:hover .shot:not(.editing) img.layer { transform: scale(1.02); transition: opacity .5s ease, transform 1.2s cubic-bezier(.22, .7, .3, 1); }
+  .slide:hover .shot:not(.editing) img.layer.framed { transform: scale(calc(var(--fz, 1) * 1.02)); }
 }
 </style>
 </head>
@@ -369,10 +398,10 @@ function slide(p) {
   const calls = p.calls || [];
   const tab = savedTab(p.id);
   const img = p.image
-    ? `<img class="layer on" src="${esc(p.image)}" alt="Latest screenshot of ${esc(p.name)}" loading="lazy" draggable="false"><img class="layer" alt="" draggable="false">${(p.gallery || []).length ? `<span class="pips" aria-hidden="true">${[p, ...p.gallery].map((_, i) => `<i${i ? "" : ` class="at"`}></i>`).join("")}</span>` : ""}`
+    ? `<img class="layer on framed" src="${esc(p.image)}" alt="Latest screenshot of ${esc(p.name)}" loading="lazy" draggable="false"><img class="layer" alt="" draggable="false">${(p.gallery || []).length ? `<span class="pips" aria-hidden="true">${[p, ...p.gallery].map((_, i) => `<i${i ? "" : ` class="at"`}></i>`).join("")}</span>` : ""}`
     : `<div class="none"><div><span>∴</span>no screenshot yet</div></div>`;
   return `<article class="slide" data-id="${esc(p.id)}" ${drag}>
-    <div class="shot">${img}${p.imageSource ? `<span class="src">${esc(p.imageSource)} · ${shortDate(p.imageDate)}</span>` : ""}<span class="pill ${esc(p.status)}">${esc(LABEL[p.status] || p.status)}</span></div>
+    <div class="shot"${frameStyle(p)}>${img}${p.imageSource ? `<span class="src">${esc(p.imageSource)} · ${shortDate(p.imageDate)}</span>` : ""}<span class="pill ${esc(p.status)}">${esc(LABEL[p.status] || p.status)}</span>${SAVE && p.image ? `<button type="button" class="frame-btn" data-frame="${esc(p.id)}" title="Frame the cover: drag, pinch or scroll">${FRAME_SVG}</button>` : ""}</div>
     <div class="body">
       <div class="title"><h3>${titleLink(p)}</h3><div class="r">${(p.image && (p.gallery || []).length) ? `<button type="button" class="cycle" data-cycle="${esc(p.id)}" aria-label="Show more screenshots" title="Hover to flip through screenshots">${CYCLE_SVG}</button>` : ""}<span class="when" title="Last worked">${ago(lastTouch(p))}</span>${grip}</div></div>
       <div class="kind">${esc(p.kind)} · ${esc(p.folder)}</div>
@@ -431,10 +460,18 @@ function titleLink(p) {
   return `<a class="session" href="${esc(p.sessionUrl)}" draggable="false" title="${esc(tip)}">${esc(p.name)}<span class="go" aria-hidden="true">${p.sessionLast ? "↗" : "+"}</span></a>`;
 }
 
+// The owner's framing of a cover, as the CSS variables .shot and .thumb read.
+function frameVars(f) {
+  if (!f) return "";
+  return f.fit ? "--ff:contain;--fz:1" : `--fx:${f.x}%;--fy:${f.y}%;--fz:${f.zoom}`;
+}
+const FRAME_SVG = `<svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M4.5 1.5v10h10"/><path d="M1.5 4.5h10v10"/></svg>`;
+function frameStyle(p) { return p.frame ? ` style="${frameVars(p.frame)}"` : ""; }
+
 function row(p) {
   const thumb = p.image ? `<img src="${esc(p.image)}" alt="" loading="lazy" draggable="false">` : "∴";
   return `<div class="row" data-id="${esc(p.id)}" ${drag}>
-    <div class="thumb">${thumb}</div>
+    <div class="thumb"${frameStyle(p)}>${thumb}</div>
     <div><b>${titleLink(p)}</b>${folderBtn(p, true)}<div class="kind">${esc(p.kind)} · ${esc(LABEL[p.status] || p.status)}</div></div>
     <div class="s ${p.note ? "noted" : "dim"}" data-row-note="${esc(p.id)}"${SAVE ? ` title="${p.note ? "Your note. Click to edit." : "Click to write a note"}"` : ""}>${esc(p.note || p.nextStep || p.summary)}</div>
     <div class="r"><span class="when">${ago(lastTouch(p))}</span>${grip}</div></div>`;
@@ -531,6 +568,7 @@ function showImage(card, img, idx) {
   const front = [...layers].find(l => l.classList.contains("on")), back = [...layers].find(l => l !== front);
   back.onload = () => {
     back.classList.toggle("fit", !!img.tall);
+    back.classList.toggle("framed", idx === 0);
     back.style.transition = REDUCED ? "none" : "";
     front.style.transition = REDUCED ? "none" : "";
     back.classList.add("on"); front.classList.remove("on");
@@ -551,7 +589,7 @@ function stopCycle(fadeBack) {
 
 document.addEventListener("mouseover", e => {
   const btn = e.target.closest && e.target.closest("[data-cycle]");
-  if (!btn || (cyc && cyc.btn === btn)) return;
+  if (!btn || (cyc && cyc.btn === btn) || btn.closest(".slide").querySelector(".shot.editing")) return;
   stopCycle(true);
   const p = STUDIO.projects.find(x => x.id === btn.dataset.cycle);
   const card = btn.closest(".slide");
@@ -570,6 +608,204 @@ document.addEventListener("mouseout", e => {
   const btn = e.target.closest && e.target.closest("[data-cycle]");
   if (btn === cyc.btn && !btn.contains(e.relatedTarget)) stopCycle(true);
 });
+
+// ---- Framing the cover ----
+// The crop icon on a cover opens framing: drag moves the image, pinch or scroll zooms toward the
+// pointer, Fit shows it whole, Done or a click outside keeps it, Esc puts it back. Holding ⌘ does
+// the same without opening it (⌘-double-click re-centres). Saved per card to framing.json, through
+// the server, for this image only; the image file itself is never touched.
+if (SAVE) {
+  const setCmd = on => document.body.classList.toggle("cmd-held", on);
+  addEventListener("keydown", e => setCmd(e.metaKey));
+  addEventListener("keyup", e => setCmd(e.metaKey));
+  addEventListener("blur", () => setCmd(false));
+
+  const ZMAX = 4;
+  const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+  const round = (v, n = 10) => Math.round(v * n) / n;
+  const centred = () => ({ x: 50, y: 50, zoom: 1, fit: false });
+  const frameOf = p => (p.frame = { ...centred(), ...(p.frame || {}) });
+  const projectOf = shot => STUDIO.projects.find(x => x.id === shot.closest(".slide").dataset.id);
+
+  const apply = p => {
+    const v = frameVars(p.frame);
+    document.querySelector(`.slide[data-id="${CSS.escape(p.id)}"] .shot`)?.setAttribute("style", v);
+    document.querySelector(`.row[data-id="${CSS.escape(p.id)}"] .thumb`)?.setAttribute("style", v);
+  };
+  const save = p => fetch("/api/frame", { method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id: p.id, key: p.imageKey, ...p.frame }) }).catch(() => {});
+  const saveTimers = {};
+  const saveSoon = p => { clearTimeout(saveTimers[p.id]); saveTimers[p.id] = setTimeout(() => save(p), 500); };
+
+  // Per axis: the image drawn to fill the box at zoom 1 is `full` px long, and the view is box / zoom.
+  // x and y say where the view sits in the distance it can travel (0 = one edge, 100 = the other).
+  const geom = shot => {
+    const img = shot.querySelector("img.framed") || shot.querySelector("img");
+    const bw = shot.clientWidth, bh = shot.clientHeight;
+    const nw = img.naturalWidth || bw, nh = img.naturalHeight || bh, s = Math.max(bw / nw, bh / nh);
+    return [["x", nw * s, bw], ["y", nh * s, bh]];
+  };
+  const travel = (full, box, z) => full - box / z;
+  const panBy = (p, shot, dx, dy, f0) => {
+    const f = p.frame, d = { x: dx, y: dy };
+    for (const [k, full, box] of geom(shot)) {
+      const t = travel(full, box, f.zoom);
+      if (t > 0.5) f[k] = round(clamp(f0[k] - d[k] / f.zoom / t * 100, 0, 100));
+    }
+  };
+  // Zoom to z2, keeping the part of the image under (sx, sy), in px from the box's corner, in place.
+  const zoomTo = (p, shot, z2, sx, sy) => {
+    const f = p.frame, z = f.zoom, at = { x: sx, y: sy };
+    if (f.fit) f.fit = false;
+    z2 = clamp(z2, 1, ZMAX);
+    for (const [k, full, box] of geom(shot)) {
+      const t1 = Math.max(travel(full, box, z), 0), t2 = travel(full, box, z2);
+      const under = f[k] / 100 * t1 + at[k] / z;
+      f[k] = t2 > 0.5 ? round(clamp((under - at[k] / z2) / t2 * 100, 0, 100)) : 50;
+    }
+    f.zoom = round(z2, 100);
+  };
+  const pointIn = (shot, e) => { const r = shot.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+  const middleOf = shot => [shot.clientWidth / 2, shot.clientHeight / 2];
+
+  // The framing mode: one cover at a time.
+  let ed = null;  // { p, shot, slide, before, bar }
+  const BAR = `<div class="frame-bar">
+    <button type="button" data-fa="out" aria-label="Zoom out">−</button>
+    <input type="range" min="1" max="${ZMAX}" step="0.01" aria-label="Zoom">
+    <button type="button" data-fa="in" aria-label="Zoom in">+</button><span class="sep"></span>
+    <button type="button" data-fa="fit" aria-pressed="false">Fit</button>
+    <button type="button" data-fa="reset">Reset</button>
+    <button type="button" data-fa="done" class="done">Done</button></div>`;
+  // `fromSlider`: leave the slider alone while it's being dragged (Safari drops the drag if its
+  // value is set from code mid-way).
+  const sync = (fromSlider = false) => {
+    if (!ed) return;
+    const f = ed.p.frame, range = ed.bar.querySelector("input");
+    if (!fromSlider) range.value = f.zoom;
+    range.disabled = !!f.fit;
+    ed.bar.querySelector('[data-fa="fit"]').setAttribute("aria-pressed", f.fit ? "true" : "false");
+    apply(ed.p);
+  };
+  const openFrame = shot => {
+    if (ed) closeFrame(true);
+    stopCycle(true);
+    const p = projectOf(shot), slide = shot.closest(".slide");
+    ed = { p, shot, slide, before: { ...frameOf(p) } };
+    shot.classList.add("editing");
+    // Its own key, apart from the notes code's data-drag.
+    slide.dataset.frameDrag = slide.getAttribute("draggable"); slide.setAttribute("draggable", "false");
+    shot.insertAdjacentHTML("beforeend", BAR);
+    ed.bar = shot.querySelector(".frame-bar");
+    sync();
+  };
+  const closeFrame = keep => {
+    if (!ed) return;
+    const { p, shot, slide, before, bar } = ed;
+    if (!keep) { p.frame = before; apply(p); }
+    else if (JSON.stringify(p.frame) !== JSON.stringify(before)) save(p);
+    bar.remove(); shot.classList.remove("editing", "panning");
+    if (slide.dataset.frameDrag) { slide.setAttribute("draggable", slide.dataset.frameDrag); delete slide.dataset.frameDrag; }
+    ed = null;
+  };
+
+  document.addEventListener("click", e => {
+    const open = e.target.closest && e.target.closest("[data-frame]");
+    if (open) { e.preventDefault(); e.stopPropagation(); return openFrame(open.closest(".shot")); }
+    const act = ed && e.target.closest && e.target.closest(".frame-bar [data-fa]");
+    if (!act) return;
+    const f = ed.p.frame, [mx, my] = middleOf(ed.shot);
+    ({
+      out: () => zoomTo(ed.p, ed.shot, f.zoom / 1.25, mx, my),
+      in: () => zoomTo(ed.p, ed.shot, f.zoom * 1.25, mx, my),
+      fit: () => { f.fit = !f.fit; },
+      reset: () => { ed.p.frame = centred(); },
+      done: () => closeFrame(true),
+    })[act.dataset.fa]();
+    sync();
+  });
+  document.addEventListener("input", e => {
+    if (!ed || !e.target.matches(".frame-bar input")) return;
+    const [mx, my] = middleOf(ed.shot);
+    zoomTo(ed.p, ed.shot, +e.target.value, mx, my); sync(true);
+  });
+  addEventListener("keydown", e => {
+    if (!ed) return;
+    if (e.key === "Escape") { e.preventDefault(); closeFrame(false); }
+    else if (e.key === "Enter" && !e.target.closest(".frame-bar button")) { e.preventDefault(); closeFrame(true); }
+  });
+
+  // Drag to move: inside the framing mode, or anywhere on a cover while ⌘ is held.
+  let pan = null;
+  document.addEventListener("mousedown", e => {
+    if (e.button !== 0 || !e.target.closest) return;
+    if (ed && !ed.shot.contains(e.target)) closeFrame(true);  // a click outside keeps it
+    if (e.target.closest(".frame-bar, [data-frame]")) return;
+    const shot = e.target.closest(".slide .shot");
+    const editing = ed && ed.shot === shot, cmd = e.metaKey && shot && shot.querySelector("img.framed");
+    if (!editing && !cmd) return;
+    const p = projectOf(shot);
+    if (frameOf(p).fit) return;
+    e.preventDefault(); stopCycle(true);
+    pan = { p, shot, editing, x0: e.clientX, y0: e.clientY, f0: { ...p.frame } };
+    shot.classList.add("framing", "panning");
+  }, true);
+  document.addEventListener("dragstart", e => { if (pan) e.preventDefault(); }, true);
+  addEventListener("mousemove", e => {
+    if (!pan) return;
+    panBy(pan.p, pan.shot, e.clientX - pan.x0, e.clientY - pan.y0, pan.f0);
+    apply(pan.p);
+  });
+  addEventListener("mouseup", () => {
+    if (!pan) return;
+    pan.shot.classList.remove("framing", "panning");
+    if (!pan.editing) saveSoon(pan.p);
+    pan = null;
+  });
+
+  // Pinch or scroll to zoom toward the pointer. (A trackpad pinch arrives as a ctrl-wheel in
+  // Chrome and as gesture events in Safari.)
+  const zoomTarget = e => {
+    const shot = e.target.closest && e.target.closest(".slide .shot");
+    if (!shot || !shot.querySelector("img.framed")) return null;
+    if (ed && ed.shot === shot) return { shot, editing: true };
+    return e.metaKey ? { shot, editing: false } : null;
+  };
+  const zoomed = (t, p) => { t.shot.classList.add("framing"); if (t.editing) sync(); else { apply(p); saveSoon(p); }
+    clearTimeout(t.shot._unframe); t.shot._unframe = setTimeout(() => t.shot.classList.remove("framing"), 200); };
+  document.addEventListener("wheel", e => {
+    const t = zoomTarget(e); if (!t) return;
+    e.preventDefault(); stopCycle(true);
+    const p = projectOf(t.shot), f = frameOf(p), [sx, sy] = pointIn(t.shot, e);
+    zoomTo(p, t.shot, f.zoom * Math.exp(-e.deltaY * (e.ctrlKey ? 0.01 : 0.002)), sx, sy);
+    zoomed(t, p);
+  }, { passive: false });
+  let pinch = null;
+  document.addEventListener("gesturestart", e => {
+    const t = zoomTarget(e); if (!t) return;
+    e.preventDefault();
+    const p = projectOf(t.shot);
+    pinch = { t, p, z0: frameOf(p).zoom };
+  }, { passive: false });
+  document.addEventListener("gesturechange", e => {
+    if (!pinch) return;
+    e.preventDefault();
+    const [sx, sy] = pointIn(pinch.t.shot, e);
+    zoomTo(pinch.p, pinch.t.shot, pinch.z0 * e.scale, sx, sy);
+    zoomed(pinch.t, pinch.p);
+  }, { passive: false });
+  document.addEventListener("gestureend", () => { pinch = null; });
+
+  // Double-click re-centres: inside the framing mode, or with ⌘ held.
+  document.addEventListener("dblclick", e => {
+    const shot = e.target.closest && e.target.closest(".slide .shot");
+    if (!shot || e.target.closest(".frame-bar")) return;
+    if (ed && ed.shot === shot) { e.preventDefault(); ed.p.frame = centred(); return sync(); }
+    if (!e.metaKey || !shot.querySelector("img.framed")) return;
+    e.preventDefault();
+    const p = projectOf(shot); p.frame = centred(); apply(p); saveSoon(p);
+  });
+}
 
 // ---- Tooltips: the browser's own can't be timed, so the board draws its own ----
 // Every title="…" becomes data-tip; it shows after TIP_DELAY and fades after TIP_HOLD,

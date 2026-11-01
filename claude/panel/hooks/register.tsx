@@ -279,6 +279,9 @@ export const register: Register = (on, options) => {
     // back as an empty element when nothing else is above the prompt, and a gap
     // would turn it into a blank line.
     const below = await next(e)
+    // The projects root itself isn't a project (helper sessions can start there, and
+    // "Add to board" would add the whole folder as one): no row, just whatever else is above the prompt.
+    if (!p && table?.root && (await $.session.cwd()) === table.root) return below
     const stack = (row: any) => (
       <Box flexDirection="column">
         {background ? (

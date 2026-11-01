@@ -15,7 +15,7 @@ It always stays one row. As the window narrows, the next step gives way first, t
 
 To refresh a project right away, any time, say "wrap up" or run `/light-table:light-table-wrap-up`. For every project at once, run `/light-table:light-table-sweep`.
 
-**In a folder that isn't on the board**, just a small **∴ Add to board**.
+**In a folder that isn't on the board**, just a small **∴ Add to board**. In the projects root itself there's no row at all: it isn't a project.
 
 It doesn't restart a stopped dev server by itself: the **Local** button is bright while the server is down, and pressing it starts the server and opens the page when it's up. A project can opt in with `"autoStart": true` in its record entry (see `core/RECORD.md`); then the panel restarts it when a session starts, when you come back to the session, or with your first message after an outage. Every 20 seconds it checks the server and re-reads the record, so a project you just added shows up without a restart.
 

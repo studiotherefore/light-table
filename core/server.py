@@ -9,6 +9,8 @@
                       the owner dragged one card; saved as rank and shelf, and to places.json
   POST /api/note      {"id": ..., "text": ...}  the owner's own note on a card, kept in notes.json
                       (never in the record, so no sweep or agent touches it); empty text removes it
+  POST /api/frame     {"id": ..., "key": ..., "x": 0-100, "y": 0-100, "zoom": 1-4, "fit": bool}  how the owner
+                      framed a card's cover (Frame icon, or ⌘-drag / ⌘-scroll), kept in framing.json for that image only; centred removes it
 
 Only ever writes inside the table folder (see config.py). Listens on localhost only.
 """
@@ -24,6 +26,7 @@ import places
 from config import CORE as HERE, HOME, PORT, RECORD, ROOT, require_root, table_path
 
 NOTES = table_path("notes.json")
+FRAMING = table_path("framing.json")
 LOCK = threading.Lock()
 
 
@@ -140,6 +143,29 @@ class Handler(BaseHTTPRequestHandler):
                 places.write(NOTES, notes)
                 r = run("build.py")
                 return self.reply(200, {"ok": r.returncode == 0, "updated": notes.get(body["id"], {}).get("updated")})
+            if self.path == "/api/frame":
+                with open(RECORD) as fh:
+                    ids = {p["id"] for p in json.load(fh)["projects"]}
+                try:
+                    pid, key = body["id"], body["key"]
+                    x, y, zoom = (float(body[k]) for k in ("x", "y", "zoom"))
+                except (KeyError, TypeError, ValueError):
+                    return self.reply(400, {"error": "bad framing"})
+                if pid not in ids or not isinstance(key, str) or len(key) > 500:
+                    return self.reply(400, {"error": "unknown card"})
+                try:
+                    framing = places.load(FRAMING)
+                except (OSError, ValueError):
+                    framing = {}
+                x, y, zoom = (round(min(max(v, lo), hi), 2) for v, lo, hi in ((x, 0, 100), (y, 0, 100), (zoom, 1, 4)))
+                fit = body.get("fit") is True
+                if (x, y, zoom, fit) == (50, 50, 1, False):
+                    framing.pop(pid, None)
+                else:
+                    framing[pid] = {"key": key, "x": x, "y": y, "zoom": zoom, "fit": fit}
+                places.write(FRAMING, framing)
+                r = run("build.py")
+                return self.reply(200, {"ok": r.returncode == 0})
         self.reply(404, {"error": "not found"})
 
 

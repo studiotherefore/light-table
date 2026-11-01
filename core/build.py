@@ -232,6 +232,13 @@ def main():
     except (OSError, ValueError):
         notes = {}
 
+    # How the owner framed each cover (Frame icon, or ⌘-drag / ⌘-scroll on the board; server.py writes framing.json).
+    try:
+        with open(table_path("framing.json")) as fh:
+            framing = json.load(fh)
+    except (OSError, ValueError):
+        framing = {}
+
     agent = sessions.provider(CFG["sessions"])
     used = set()
     for p in data["projects"]:
@@ -251,6 +258,11 @@ def main():
 
         src, p["imageSource"] = choose_image(p, folder)
         p["image"] = thumb_data_uri(src, p["id"]) if src else None
+        # A framing belongs to the image it was set on; a different cover starts centred.
+        p["imageKey"] = os.path.relpath(src, ROOT) if src else None
+        f = framing.get(p["id"])
+        if f and src and f.get("key") == p["imageKey"]:
+            p["frame"] = {"x": f["x"], "y": f["y"], "zoom": f["zoom"], "fit": bool(f.get("fit"))}
         gallery = [gallery_thumb(g) for g in gallery_sources(folder, src)] if src and folder else []
         p["gallery"] = [{"src": url, "tall": tall} for url, tall, _ in gallery]
         used.update(name for _, _, name in gallery)

@@ -212,6 +212,8 @@ a.session:hover .go { color: var(--accent); }
   vertical-align: -2px; border-radius: 3px; }
 .folder-sm:hover:not(:disabled) { color: var(--accent); }
 .linkbtn:disabled, .folder-sm:disabled { opacity: .45; cursor: default; }
+a.linkbtn, a.folder-sm { text-decoration: none; }
+a.folder-sm { display: inline-block; }
 
 /* the board's own tooltip: appears after a beat, then fades on its own */
 .tip { position: fixed; z-index: 50; max-width: 260px; padding: 3px 7px; border-radius: 3px;
@@ -305,6 +307,9 @@ const lastTouch = p => [p.lastWorked, p.filesChanged].filter(Boolean).sort().pop
 const LABEL = { active: "Active", waiting: "Waiting", paused: "Paused", dormant: "Dormant" };
 // Buttons and dragging save only when the board is served by mods/studio/server.py.
 const SAVE = location.protocol === "http:";
+// On a published copy (the online demo) Folder and Handoff carry web links instead of
+// this machine's paths, so they open as plain links rather than through the server.
+const webLink = url => !SAVE && /^https:\/\//.test(url || "");
 if (STUDIO.title) { document.title = STUDIO.title; document.getElementById("board-title").textContent = STUDIO.title; }
 
 // Where a project sits: the owner's choice when they've dragged it, else from its status.
@@ -356,7 +361,8 @@ function openLinks(p) {
   if (p.localUrl) out.push(`<a class="${p.liveUrl ? "" : "primary"}" href="${esc(p.localUrl)}" target="_blank" rel="noopener" title="Works while its server is running">Local :${esc(p.server?.port ?? "")}</a>`);
   if (p.appReady) out.push(`<button type="button" class="linkbtn${p.liveUrl || p.localUrl ? "" : " primary"}" data-act="open-app" data-id="${esc(p.id)}" ${SAVE ? "" : "disabled"} title="Launch the built app">App</button>`);
   if (p.notesUrl) out.push(`<a href="${esc(p.notesUrl)}" target="_blank" rel="noopener" title="The handoff on GitHub${p.notesBranch ? ", branch " + esc(p.notesBranch) : ""}">Handoff</a>`);
-  if (p.handoffUrl) out.push(`<button type="button" class="linkbtn" data-act="open-handoff" data-id="${esc(p.id)}" ${SAVE ? "" : "disabled"} title="Open the project's handoff file">Handoff</button>`);
+  if (webLink(p.handoffUrl)) out.push(`<a href="${esc(p.handoffUrl)}" target="_blank" rel="noopener" title="The handoff on GitHub">Handoff</a>`);
+  else if (p.handoffUrl) out.push(`<button type="button" class="linkbtn" data-act="open-handoff" data-id="${esc(p.id)}" ${SAVE ? "" : "disabled"} title="Open the project's handoff file">Handoff</button>`);
   out.push(folderBtn(p));
   return out.join("");
 }
@@ -418,6 +424,7 @@ const CYCLE_SVG = `<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="4.5" y="
 const FOLDER_SVG = `<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M1.75 3.25h4.1l1.5 1.6h6.9v7.9H1.75z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>`;
 function folderBtn(p, small = false) {
   if (p.remote) return "";  // only on GitHub: the local copy is old
+  if (webLink(p.folderUrl)) return `<a class="${small ? "folder-sm" : "linkbtn folder"}" href="${esc(p.folderUrl)}" target="_blank" rel="noopener" title="Open the folder on GitHub" aria-label="Open folder on GitHub">${FOLDER_SVG}</a>`;
   return `<button type="button" class="${small ? "folder-sm" : "linkbtn folder"}" data-act="open-folder" data-id="${esc(p.id)}" ${SAVE ? "" : "disabled"} title="Open ${esc(p.folder)} in Finder" aria-label="Open folder in Finder">${FOLDER_SVG}</button>`;
 }
 

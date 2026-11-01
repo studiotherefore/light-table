@@ -1,9 +1,9 @@
 ---
 name: light-table-wrap-up
-description: Wrap up this session for Light Table. Use when the user says "wrap up", "update the board", "record where we are" or presses Add to board. Rewrites this project's entry (now, next step, decisions, status), takes a screenshot of the app, and rebuilds the board.
+description: Wrap up this session for StudioWall. Use when the user says "wrap up", "update the board", "record where we are" or presses Add to board. Rewrites this project's entry (now, next step, decisions, status), takes a screenshot of the app, and rebuilds the board.
 ---
 
-# Wrap up for Light Table
+# Wrap up for StudioWall
 
 Record where this project stands after the session, so the board (and the next session) can pick it up.
 
@@ -11,7 +11,7 @@ Record where this project stands after the session, so the board (and the next s
 
 The scripts are in `core/`, two folders up from this skill's folder (`<this skill's folder>/../../core`, symlinks resolved). Call it `CORE`. Run `python3 "$CORE/config.py"` for the record path (`record`), the table folder (`home`) and the projects root (`root`). Field definitions and rules: `CORE/RECORD.md`.
 
-If the config or record doesn't exist, say Light Table isn't set up and offer the `light-table-setup` skill. Stop there.
+If the config or record doesn't exist, say StudioWall isn't set up and offer the `light-table-setup` skill. Stop there.
 
 **Which entry:** the one whose `folder` (relative to `root`) contains the current working folder; if several do, the longest `folder` wins. If none does, this project is new: add an entry (pick `id`, `name`, `folder` relative to `root`, `kind`, `summary`, `about`), without `shelf` or `rank`.
 

@@ -2,4 +2,4 @@
 
 A tiny idle game about growing plants out of pixels.
 
-(Invented project for the Light Table demo.)
+(Invented project for the StudioWall demo.)

@@ -1,10 +1,10 @@
-# Light Table
+# StudioWall
 
 A local board of all your projects, kept current by your coding agent. For Mac, with Claude Code.
 
 **[See the demo board →](https://studiotherefore.github.io/light-table/)** (invented projects, read-only, nothing to install)
 
-![Light Table showing invented example projects: active cards with screenshots, next steps and decisions, and a resting list below](docs/board.jpg)
+![StudioWall showing invented example projects: active cards with screenshots, next steps and decisions, and a resting list below](docs/board.jpg)
 
 One dark page at `http://localhost:8130` answers, at a glance: what's active, where each project stands, what the next step is, which decisions are waiting on you, and what it looks like now.
 
@@ -25,14 +25,14 @@ Everything runs on your Mac. Status lives in one file in your own table folder (
 
 ## What you need
 
-- **A Mac.** Light Table doesn't run on Windows or Linux yet.
+- **A Mac.** StudioWall doesn't run on Windows or Linux yet.
 - **Claude Code**, in the [Claude desktop app](https://claude.ai/download) (its Code tab) or in Terminal.
 - **Python 3.** The first time anything runs `python3`, macOS may offer to install Apple's command line developer tools, a free download of a few minutes. Say yes; that includes Python 3.
 - **Google Chrome**, optional, for automatic screenshots of your projects.
 
 ## Try the demo on your Mac
 
-The [demo board](https://studiotherefore.github.io/light-table/) is online. To run it on your own Mac, with dragging and notes working, open **Terminal** (in Applications → Utilities) and paste these two lines. The first downloads Light Table into your home folder; the second opens the demo in your browser.
+The [demo board](https://studiotherefore.github.io/light-table/) is online. To run it on your own Mac, with dragging and notes working, open **Terminal** (in Applications → Utilities) and paste these two lines. The first downloads StudioWall into your home folder; the second opens the demo in your browser.
 
 ```bash
 git clone https://github.com/studiotherefore/light-table && cd light-table
@@ -41,7 +41,7 @@ LIGHT_TABLE_HOME=demo/table python3 core/open.py
 
 ## Install for Claude Code
 
-1. Put your projects in one folder (subfolders are fine), e.g. `~/Projects`. Light Table only reads them.
+1. Put your projects in one folder (subfolders are fine), e.g. `~/Projects`. StudioWall only reads them.
 2. Open Claude Code in any folder: in the desktop app, open the **Code** tab and start a session.
 3. Type these two lines, one at a time:
 
@@ -50,13 +50,15 @@ LIGHT_TABLE_HOME=demo/table python3 core/open.py
 /plugin install light-table@light-table
 ```
 
-Then ask: **"Set up Light Table."** The agent asks which folder holds your projects, reads each one's README / CLAUDE.md / handoff notes, drafts an entry for each (anything it guessed is marked "unconfirmed"), lets you correct the list, and opens the board.
+(The repo, plugin and commands keep the project's earlier name, `light-table`. It's the same thing.)
+
+Then ask: **"Set up StudioWall."** The agent asks which folder holds your projects, reads each one's README / CLAUDE.md / handoff notes, drafts an entry for each (anything it guessed is marked "unconfirmed"), lets you correct the list, and opens the board.
 
 Optional: **one row of buttons above the prompt** (Open, App, Local, Live, Board, Hide, plus the decisions list). Its Local button starts a stopped dev server. This uses an early-access Claude Code API that still changes. See [claude/panel/README.md](claude/panel/README.md).
 
 ## Codex
 
-**Codex isn't supported yet.** Light Table is being finished for Claude Code first. The `codex/` folder holds early, untested work toward it; don't rely on it.
+**Codex isn't supported yet.** StudioWall is being finished for Claude Code first. The `codex/` folder holds early, untested work toward it; don't rely on it.
 
 ## Everyday use
 
@@ -64,7 +66,7 @@ Optional: **one row of buttons above the prompt** (Open, App, Local, Live, Board
 |---|---|
 | See the board | "Open my board" (or **⠿** in the panel) |
 | Record where a project stands | "Wrap up" (`/light-table:light-table-wrap-up`) |
-| Catch up every project now | "Run the Light Table sweep" (`/light-table:light-table-sweep`) |
+| Catch up every project now | "Run the StudioWall sweep" (`/light-table:light-table-sweep`) |
 | Choose a project's cover image | Name an image in its folder `…current….png` |
 | Keep headless screenshots off for a project | Set `"autoCapture": false` on its entry |
 
@@ -108,4 +110,4 @@ Your table folder (`~/.light-table`, or `$LIGHT_TABLE_HOME`) holds `config.json`
 2. If you set up the nightly sweep, delete its scheduled task in the Claude app (or unload the launchd job, see [schedule/README.md](schedule/README.md)).
 3. Your board and notes are in `~/.light-table`. Delete that folder to remove them too. Your project folders were never changed.
 
-Light Table is a personal project, shared as is under the [MIT license](LICENSE). Issues and ideas are welcome (see [CONTRIBUTING.md](CONTRIBUTING.md)); fixes come as time allows.
+StudioWall is a personal project, shared as is under the [MIT license](LICENSE). Issues and ideas are welcome (see [CONTRIBUTING.md](CONTRIBUTING.md)); fixes come as time allows.

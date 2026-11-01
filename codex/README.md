@@ -1,6 +1,6 @@
-# Light Table for Codex
+# StudioWall for Codex
 
-**Status: not supported yet.** Light Table is being finished for Claude Code first, and Codex work is paused until then. What's here is early and untested; don't rely on it.
+**Status: not supported yet.** StudioWall is being finished for Claude Code first, and Codex work is paused until then. What's here is early and untested; don't rely on it.
 
 ## Install (personal)
 
@@ -10,7 +10,7 @@ Codex loads skills from `~/.agents/skills`. Link the four skills there from a cl
 sh codex/install.sh
 ```
 
-Then, in a Codex session in any folder: "set up Light Table".
+Then, in a Codex session in any folder: "set up StudioWall".
 
 Optionally add `codex/AGENTS.snippet.md` to your global `~/.codex/AGENTS.md` so every session knows about Wrap up. The setup skill offers to do this.
 

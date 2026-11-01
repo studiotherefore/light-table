@@ -1,6 +1,6 @@
 # Contributing
 
-Light Table is a personal project, made by an artist for artists and designers, and shared as is. You don't need to write code to help.
+StudioWall is a personal project, made by an artist for artists and designers, and shared as is. You don't need to write code to help.
 
 ## Ways to help
 

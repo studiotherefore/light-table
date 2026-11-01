@@ -1,6 +1,6 @@
-## Light Table
+## StudioWall
 
-My projects are tracked on Light Table, a local board (one record of every project's status; project folders are never written to by it).
+My projects are tracked on StudioWall, a local board (one record of every project's status; project folders are never written to by it).
 
 - When I say "wrap up", "update the board" or "record where we are", use the `$light-table-wrap-up` skill.
 - When I ask to see my board or projects, use the `$light-table-open` skill.

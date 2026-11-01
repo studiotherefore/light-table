@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Capture the current full view of each project for Light Table.
+"""Capture the current full view of each project for StudioWall.
 
 For every project: if its local server is running, capture that (the newest
 work); otherwise capture its live site. Headless Chrome, 1440x900, saved to

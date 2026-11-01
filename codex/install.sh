@@ -1,5 +1,5 @@
 #!/bin/sh
-# Link Light Table's skills into ~/.agents/skills, where Codex finds personal skills.
+# Link StudioWall's skills into ~/.agents/skills, where Codex finds personal skills.
 # Links (not copies), so pulling a new version of this repo updates them.
 set -e
 REPO="$(cd "$(dirname "$0")/.." && pwd)"

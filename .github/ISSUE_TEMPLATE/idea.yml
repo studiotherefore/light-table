@@ -1,5 +1,5 @@
 name: An idea
-description: Something Light Table could do for the way you work
+description: Something StudioWall could do for the way you work
 body:
   - type: textarea
     id: idea

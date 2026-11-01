@@ -15,6 +15,6 @@ if git diff --cached --quiet; then
   echo "Backup: nothing changed."
   exit 0
 fi
-git commit -q -m "Light Table backup $(date +%Y-%m-%d)"
+git commit -q -m "StudioWall backup $(date +%Y-%m-%d)"
 git push -q origin HEAD
 echo "Backup: pushed $(git rev-parse --short HEAD)."

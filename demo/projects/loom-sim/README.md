@@ -2,4 +2,4 @@
 
 A jacquard loom simulator that weaves patterns from punch-card files.
 
-(Invented project for the Light Table demo.)
+(Invented project for the StudioWall demo.)

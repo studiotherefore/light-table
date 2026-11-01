@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Where Light Table keeps things, read from one config file.
+"""Where StudioWall keeps things, read from one config file.
 
 Two folders matter:
 
@@ -13,7 +13,7 @@ config.json (see config.example.json):
   root          the folder that holds your projects (required; may be relative
                 to the table folder, and may start with ~)
   port          the board's localhost port (default 8130)
-  title         the name at the top of the board (default "Light Table")
+  title         the name at the top of the board (default "StudioWall")
   chrome        the browser used for auto-captures
   sessions      whose sessions project titles open: "auto", "claude", "codex" or "none"
   skipDirs      extra folder names never scanned (node_modules etc. are built in)
@@ -83,7 +83,7 @@ BOARD_URL = f"http://localhost:{PORT}/"
 def require_root():
     """Stop with a plain message when the table hasn't been set up yet."""
     if not ROOT or not os.path.isdir(ROOT):
-        sys.exit(f"Light Table isn't set up yet: {CONFIG_PATH} needs a \"root\" folder that exists "
+        sys.exit(f"StudioWall isn't set up yet: {CONFIG_PATH} needs a \"root\" folder that exists "
                  f"(found {CFG['root']!r}). Ask your agent to run the light-table setup skill.")
     if not os.path.exists(RECORD):
         sys.exit(f"No record at {RECORD}. Ask your agent to run the light-table setup skill.")

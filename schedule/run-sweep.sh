@@ -1,5 +1,5 @@
 #!/bin/sh
-# Run the Light Table nightly sweep through an agent's headless CLI.
+# Run the StudioWall nightly sweep through an agent's headless CLI.
 #   sh schedule/run-sweep.sh claude    (Claude Code, with the light-table plugin installed)
 #   sh schedule/run-sweep.sh codex     (Codex, with the skills linked by codex/install.sh)
 # The report goes to sweep.log in the table folder.

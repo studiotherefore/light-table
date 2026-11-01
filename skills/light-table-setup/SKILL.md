@@ -1,11 +1,11 @@
 ---
 name: light-table-setup
-description: Set up Light Table, a local dashboard of all your projects. Use when the user asks to set up, install, start or rebuild their Light Table / project board, or to add the projects in a folder to it for the first time. Scans their projects folder, drafts one entry per project from its docs, writes the record and opens the board.
+description: Set up StudioWall, a local dashboard of all your projects. Use when the user asks to set up, install, start or rebuild their StudioWall / project board, or to add the projects in a folder to it for the first time. Scans their projects folder, drafts one entry per project from its docs, writes the record and opens the board.
 ---
 
-# Set up Light Table
+# Set up StudioWall
 
-Light Table is a local web page (a "board") showing every project in one folder tree: status, next step, decisions waiting on the owner, and a screenshot. One file holds the status of all projects: `projects.json` in the **table folder**. Project folders are only ever read.
+StudioWall is a local web page (a "board") showing every project in one folder tree: status, next step, decisions waiting on the owner, and a screenshot. One file holds the status of all projects: `projects.json` in the **table folder**. Project folders are only ever read.
 
 ## Find the code
 
@@ -41,7 +41,7 @@ Keep the user updates short and plain. Ask questions with your question/choice t
 9. **Screenshots (optional).** If Google Chrome is installed, offer to take first screenshots of projects with a live site or a running local server: `python3 "$CORE/snap.py"` (about a minute; failures just keep no image). Projects where it shows only a loading, login or audio-start screen can get `"autoCapture": false`.
 10. **Open the board.** Run `python3 "$CORE/open.py"`. It builds the page, starts the small local server in the background and opens the board in the browser. If you have your own browser view, you can use `--no-open` and show the printed URL there instead.
 11. **Offer the extras**, in one short message, and set up only what they say yes to:
-   - **Nightly sweep**: keeps entries current every night. Claude desktop app: create a scheduled task (daily, about 11 PM) whose prompt is "Run the light-table-sweep skill." Then tell them to press **Run now** on it once while they're at the computer and choose "Always allow" for each command it asks about (three fixed commands). The approvals stay with the task, so night runs never stop to wait for a prompt nobody sees. After a plugin update, do one more Run now, since the commands' path changes. Everyone else: see `schedule/README.md` in the Light Table code (a launchd job that runs the sweep through `claude -p`).
+   - **Nightly sweep**: keeps entries current every night. Claude desktop app: create a scheduled task (daily, about 11 PM) whose prompt is "Run the light-table-sweep skill." Then tell them to press **Run now** on it once while they're at the computer and choose "Always allow" for each command it asks about (three fixed commands). The approvals stay with the task, so night runs never stop to wait for a prompt nobody sees. After a plugin update, do one more Run now, since the commands' path changes. Everyone else: see `schedule/README.md` in the StudioWall code (a launchd job that runs the sweep through `claude -p`).
    - **Backup**: make the table folder a private Git repo of their own (`git init`, add their remote). The sweep then backs it up nightly with `CORE/backup.sh`. Never create a remote repo for them without asking.
    - **Claude Code buttons** (optional panel above the prompt): see `claude/panel/README.md`.
 12. Finish with two lines: how many projects are on the board, and its address.

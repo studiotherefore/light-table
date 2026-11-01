@@ -1,4 +1,4 @@
-# Light Table panel (Claude Code, optional, early access)
+# StudioWall panel (Claude Code, optional, early access)
 
 One row above the prompt in every Claude Code session.
 
@@ -9,7 +9,7 @@ One row above the prompt in every Claude Code session.
 - **Open**, **App**, **Local**, **Live**: one button per way into the project, each shown only when the project has it. **Open** opens the record's hand-set `open`, **App** launches the built app, **Live** opens the deployed site. **Local** opens the local page; while its server is down it's the bright button, and pressing it asks Claude to start the server and opens the page once it answers
 - **Update**: only while no nightly sweep has run in the last two days (none set up, or one that stalled). It runs the `light-table-wrap-up` skill. With the sweep running, nothing else is needed and the button stays out of the way
 - **⠿** (Board): rebuilds the board, starts its server if needed, opens it
-- **Hide** (**–** in a narrow window): folds the row down to a small **∴ Light Table**
+- **Hide** (**–** in a narrow window): folds the row down to a small **∴ StudioWall**
 
 It always stays one row. As the window narrows, the next step gives way first, then Hide turns into **–**, then the count drops its word. The name is never cut and the buttons never move.
 

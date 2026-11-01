@@ -25,7 +25,7 @@ If you'd rather record in your own account, start Claude Code from Terminal with
 | Name | Length | What to do on screen |
 |---|---|---|
 | `install` | 20s | In Claude Code, type the two `/plugin` lines from the README, one at a time, and let each finish. |
-| `setup` | 45s | Say **“Set up StudioWall.”** (until the plugin is renamed, “Set up Light Table” is the phrase it answers to) Choose `~/Projects` (the demo projects), let Claude read them, accept the list, and let the board open. Speed this one up later rather than rushing it. |
+| `setup` | 45s | Say **“Set up StudioWall.”** Choose `~/Projects` (the demo projects), let Claude read them, accept the list, and let the board open. Speed this one up later rather than rushing it. |
 | `board` | 35s | On the open board: click **About**, **Status** and the **Notes** tab on a card; type a short note; hover the stacked-frames icon; drag a card down to **Resting**; click the **Your calls** filter. |
 | `wrap-up` | 30s | Open a session in one demo project's folder (Tide Clock is the clearest). Say **“wrap up”**, let it finish, then switch to the board and show the card that changed. |
 | `panel` | 20s | With the panel plugin installed, open a session in a demo project: show the row above the prompt, open the decisions list with **›**, press **⠿** to open the board. |

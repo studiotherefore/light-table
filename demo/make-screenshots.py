@@ -1,4 +1,4 @@
-"""Draw invented app screens for the Light Table demo and capture them as PNGs.
+"""Draw invented app screens for the StudioWall demo and capture them as PNGs.
 
   python3 demo/make-screenshots.py demo/projects              redraw every demo project
   python3 demo/make-screenshots.py demo/projects tide-clock   just one

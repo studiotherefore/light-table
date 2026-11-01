@@ -1,7 +1,7 @@
 {
  "name": "light-table-panel",
  "version": "0.1.0",
- "description": "Light Table above the prompt: this project's decisions and next step, buttons to open its app, local page (starting its server) or live site, Add to board, and the board",
+ "description": "StudioWall above the prompt: this project's decisions and next step, buttons to open its app, local page (starting its server) or live site, Add to board, and the board",
  "types": "./types/index.d.ts",
  "author": {
   "name": "studiotherefore"
@@ -10,7 +10,7 @@
   "tableFolder": {
    "type": "string",
    "title": "Table folder",
-   "description": "Where your Light Table record lives. Leave empty for ~/.light-table (or $LIGHT_TABLE_HOME).",
+   "description": "Where your StudioWall record lives. Leave empty for ~/.light-table (or $LIGHT_TABLE_HOME).",
    "default": ""
   },
   "background": {

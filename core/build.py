@@ -286,7 +286,7 @@ def main():
             os.remove(f)
 
     data["built"] = datetime.datetime.now().isoformat(timespec="minutes")
-    data["title"] = CFG.get("title") or "Light Table"
+    data["title"] = CFG.get("title") or "StudioWall"
 
     with open(os.path.join(CORE, "template.html")) as fh:
         html = fh.read()

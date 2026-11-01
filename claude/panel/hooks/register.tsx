@@ -3,7 +3,7 @@ import type { Register } from 'claude-code'
 
 import type { Project, ServerState } from '../types'
 
-// Light Table's resolved settings, as core/config.py prints them.
+// StudioWall's resolved settings, as core/config.py prints them.
 type Table = { core: string; home: string; record: string; root: string | null; port: number; boardUrl: string }
 
 const project = atom({ plugin: 'light-table-panel', key: 'project' } as const, null)
@@ -116,7 +116,7 @@ function restartText(p: Project): string {
 /** The message the Add to board / Update board button sends. */
 function wrapText(): string {
   return (
-    `Update Light Table for this session: run the light-table-wrap-up skill` +
+    `Update StudioWall for this session: run the light-table-wrap-up skill` +
     (table ? ` (table folder: ${table.home}; run its scripts with LIGHT_TABLE_HOME set to that).` : '.')
   )
 }
@@ -129,8 +129,8 @@ function wrapText(): string {
 function sendToClaude($: any, text: string, notice: string) {
   $.ui.toast(notice)
   void Promise.resolve($.prompt.submit({ text }))
-    .then((r: any) => { if (r && r.drop !== undefined) $.ui.toast(`Light Table: that didn't go through (${r.drop ?? 'refused'}).`) })
-    .catch((err: any) => { try { $.ui.toast(`Light Table: couldn't send that to Claude. ${err?.message ?? ''}`.trim()) } catch {} })
+    .then((r: any) => { if (r && r.drop !== undefined) $.ui.toast(`StudioWall: that didn't go through (${r.drop ?? 'refused'}).`) })
+    .catch((err: any) => { try { $.ui.toast(`StudioWall: couldn't send that to Claude. ${err?.message ?? ''}`.trim()) } catch {} })
 }
 
 export const register: Register = (on, options) => {
@@ -207,25 +207,25 @@ export const register: Register = (on, options) => {
     const collapsed = await read($, isCollapsed)
 
     const openBoard = async () => {
-      $.ui.toast('Opening Light Table…')
+      $.ui.toast('Opening StudioWall…')
       try {
         if (!table) table = await loadTable($)
         if (!table) {
-          $.ui.toast('Light Table isn’t set up yet. Ask: “set up Light Table”.')
+          $.ui.toast('StudioWall isn’t set up yet. Ask: “set up StudioWall”.')
           return
         }
         // open.py rebuilds the page, starts its server if needed and opens the browser.
         const r = await $.process.run(['/usr/bin/python3', `${table.core}/open.py`], { timeoutMs: 90_000, env: { LIGHT_TABLE_HOME: table.home } })
-        if (r.exitCode !== 0) $.ui.toast(`Light Table: ${(r.stderr || r.stdout).trim().split('\n').pop() || 'the board didn’t open.'}`)
+        if (r.exitCode !== 0) $.ui.toast(`StudioWall: ${(r.stderr || r.stdout).trim().split('\n').pop() || 'the board didn’t open.'}`)
       } catch (err: any) {
-        $.ui.toast(`Light Table: couldn't open the board. ${err?.message ?? ''}`.trim())
+        $.ui.toast(`StudioWall: couldn't open the board. ${err?.message ?? ''}`.trim())
       }
     }
     const openThing = async (what: string, label: string) => {
       try {
         await $.process.run(['/usr/bin/open', what])
       } catch (err: any) {
-        $.ui.toast(`Light Table: couldn't open ${label}. ${err?.message ?? ''}`.trim())
+        $.ui.toast(`StudioWall: couldn't open ${label}. ${err?.message ?? ''}`.trim())
       }
     }
     // One button per way in, as on the board: App, Local (starts a down server first), Live,
@@ -263,7 +263,7 @@ export const register: Register = (on, options) => {
           return openThing(url, url)
         }
       }
-      $.ui.toast(`Light Table: ${cur.name}'s server didn't come up; the page wasn't opened.`)
+      $.ui.toast(`StudioWall: ${cur.name}'s server didn't come up; the page wasn't opened.`)
     }
     const openLive = async () => {
       const cur = await read($, project)
@@ -271,7 +271,7 @@ export const register: Register = (on, options) => {
     }
     const wrap = async () => {
       const cur = await read($, project)
-      sendToClaude($, wrapText(), cur ? `Updating ${cur.name} on Light Table…` : 'Adding this folder to Light Table…')
+      sendToClaude($, wrapText(), cur ? `Updating ${cur.name} on StudioWall…` : 'Adding this folder to StudioWall…')
     }
 
     // Draw this row, then whatever other plugins put above the prompt underneath,
@@ -298,7 +298,7 @@ export const register: Register = (on, options) => {
     if (collapsed) {
       return stack(
         <Box flexDirection="row" gap={1}>
-          <Button key="expand" label={"∴ Light Table"} plain dimColor onPress={() => update($, isCollapsed, () => false)} />
+          <Button key="expand" label={"∴ StudioWall"} plain dimColor onPress={() => update($, isCollapsed, () => false)} />
         </Box>
       )
     }

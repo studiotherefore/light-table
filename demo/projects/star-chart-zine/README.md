@@ -2,4 +2,4 @@
 
 Issue three of a hand-drawn star chart zine.
 
-(Invented project for the Light Table demo.)
+(Invented project for the StudioWall demo.)

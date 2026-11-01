@@ -1,15 +1,15 @@
 ---
 name: light-table-sweep
-description: The Light Table nightly sweep. Use when a scheduled task or the user asks to sweep, refresh or catch up the project board. Finds projects whose files changed since their entry was written, updates just those from their docs and git log, refreshes screenshots, rebuilds the board and runs the optional backup.
+description: The StudioWall nightly sweep. Use when a scheduled task or the user asks to sweep, refresh or catch up the project board. Finds projects whose files changed since their entry was written, updates just those from their docs and git log, refreshes screenshots, rebuilds the board and runs the optional backup.
 ---
 
-# Light Table nightly sweep
+# StudioWall nightly sweep
 
 Bring the record up to date for every project whose files changed since its entry was written, refresh auto-screenshots, rebuild the board, and back up if the owner set that up. This usually runs unattended, so never stop to ask questions: do what the rules allow and report the rest.
 
 ## Find things
 
-The scripts are in `core/`, two folders up from this skill's folder (`<this skill's folder>/../../core`, symlinks resolved). Call it `CORE`; write it out in full in the commands below. Field definitions and rules: `CORE/RECORD.md`. If the Find command says Light Table isn't set up, report that and stop.
+The scripts are in `core/`, two folders up from this skill's folder (`<this skill's folder>/../../core`, symlinks resolved). Call it `CORE`; write it out in full in the commands below. Field definitions and rules: `CORE/RECORD.md`. If the Find command says StudioWall isn't set up, report that and stop.
 
 ## Commands
 
@@ -40,7 +40,7 @@ If the scheduled task's prompt names a table folder, add it as the last argument
    - `calls`: things only the owner can do: decisions, things to try or listen to, people to contact, deadlines. Most important first (the card shows the top three). Written as instructions ("Choose…", "Approve…", "Try…"). Keep a call only while the project's current docs (the handoff's open items, next steps, questions for the owner) still ask for it, or git shows it still pending. Remove calls the docs or commits show are resolved, and calls the current docs no longer mention: don't carry a call forward just because nothing says it's done. Check what git can answer yourself (e.g. "okay the push": is the branch ahead of its remote?).
    - `status`: active / waiting / paused / dormant, as defined in RECORD.md.
    - `lastWorked`: the newest commit or file-change date. `updated`: today. `updatedBy`: `"nightly sweep"`.
-   - For each project in the cloud result (whether or not `sweep.py` flagged it): read its saved `handoff` copy (newest dated entries first) as the latest word on that project. It is newer than the local folder. Update the entry the same way. If the branch isn't merged (`merged: false`), say so in `now` ("Cloud work on branch X, not merged yet") and make the next step or a call "Try branch X and okay the merge". Set `updatedBy: "nightly sweep (cloud)"`, and record what you read in the entry's `cloudSeen`: `{"<branch>": "<head>"}` for each branch reported (keep other branches already there). Never fetch, pull or check out the branch; the copy is all you need. If `wrapup` is false, add the call "Paste the end-of-session block (docs/cloud-wrapup.md in Light Table) into <name>'s CLAUDE.md" (once; remove it when `wrapup` is true). If a project shows an `error`, note it in the report and move on.
+   - For each project in the cloud result (whether or not `sweep.py` flagged it): read its saved `handoff` copy (newest dated entries first) as the latest word on that project. It is newer than the local folder. Update the entry the same way. If the branch isn't merged (`merged: false`), say so in `now` ("Cloud work on branch X, not merged yet") and make the next step or a call "Try branch X and okay the merge". Set `updatedBy: "nightly sweep (cloud)"`, and record what you read in the entry's `cloudSeen`: `{"<branch>": "<head>"}` for each branch reported (keep other branches already there). Never fetch, pull or check out the branch; the copy is all you need. If `wrapup` is false, add the call "Paste the end-of-session block (docs/cloud-wrapup.md in StudioWall) into <name>'s CLAUDE.md" (once; remove it when `wrapup` is true). If a project shows an `error`, note it in the report and move on.
    - If an entry has `"missing": true`, don't delete it: set `now` to "Folder not found at <folder>; moved or renamed?" and add the call "Check where <name> went".
 4. For each folder in `candidates`: read its CLAUDE.md / AGENTS.md / README / HANDOFF if any. If it is a real project (not screenshots, assets, backups or a stray file), add an entry with every field filled as above (server from `.claude/launch.json` if present), `updatedBy: "nightly sweep"`, and no `shelf` or `rank`. Skip things that clearly aren't projects.
 4b. For every entry with no `about` (at most 8 per night, newest work first): write two or three plain sentences on what the project is (not where it stands), from its README / CLAUDE.md / handoff, with a blank line between paragraphs if there are two. Use the saved handoff copy for entries with `"local": false`. Don't invent; mark inferences ` (unconfirmed)`. Don't change any other field of those entries. Leave an existing `about` alone unless the docs show the project changed direction.

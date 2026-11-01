@@ -24,7 +24,7 @@ BANNER = (
     '<div style="position:sticky;top:0;z-index:50;background:#2b2a33;color:#d8d6e0;'
     'font:13px/1.5 -apple-system,system-ui,sans-serif;text-align:center;padding:8px 16px">'
     "A demo board with invented projects, read-only here. "
-    f'<a href="{GITHUB}#readme" style="color:#c7bdff">Get Light Table for your own work →</a></div>'
+    f'<a href="{GITHUB}#readme" style="color:#c7bdff">Get StudioWall for your own work →</a></div>'
 )
 
 subprocess.run([sys.executable, str(REPO / "core" / "build.py")],

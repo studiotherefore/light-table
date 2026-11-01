@@ -1,6 +1,6 @@
 # Demo board
 
-An invented set of projects, so you can see Light Table before pointing it at your own work.
+An invented set of projects, so you can see StudioWall before pointing it at your own work.
 
 ```bash
 LIGHT_TABLE_HOME=demo/table python3 core/open.py

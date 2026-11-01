@@ -2,4 +2,4 @@
 
 Portfolio site for a small letterpress studio.
 
-(Invented project for the Light Table demo.)
+(Invented project for the StudioWall demo.)

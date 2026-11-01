@@ -1,7 +1,7 @@
 {
  "root": "~/Projects",
  "port": 8130,
- "title": "Light Table",
+ "title": "StudioWall",
  "chrome": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
  "sessions": "auto",
  "skipDirs": [],

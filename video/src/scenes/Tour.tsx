@@ -4,14 +4,16 @@ import React from "react";
 import { AbsoluteFill, interpolate, useCurrentFrame } from "remotion";
 import { BoardImage, cameraAt, frameOn, Key, L, Outline } from "../Board";
 import { Appear, Caption } from "../parts";
-import { C } from "../theme";
+import { SHORT, TOUR } from "../script";
+import { C, s } from "../theme";
 
 const B = L.after;
 const status = { x: B.now.x, y: B.now.y, w: B.now.w, h: B.calls.y + B.calls.h - B.now.y };
 const rest = { x: B.resting.x, y: B.resting.y, w: B.resting.w, h: B.archive.y + B.archive.h - B.resting.y };
 
 // When each beat starts, in frames.
-export const T = { card: 150, status: 300, now: 340, next: 405, calls: 470, rest: 560, end: 690 };
+const b = TOUR.beats;
+export const T = { card: s(b.card), status: s(b.status), now: s(b.now), next: s(b.next), calls: s(b.calls), rest: s(b.rest), end: s(SHORT.scenes.tour) };
 
 const KEYS: Key[] = [
   { at: 0, ...frameOn({ x: 0, y: 0, w: 1600, h: 900 }, 1.2) },
@@ -41,28 +43,28 @@ export const Tour: React.FC = () => {
       {/* the whole board */}
       <AbsoluteFill style={{ background: `linear-gradient(to top, ${C.ground} 0%, ${C.ground}e6 22%, transparent 46%)`, opacity: interpolate(f, [10, 30, T.card - 15, T.card + 5], [0, 1, 1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }) }} />
       <Appear from={20} to={T.card} style={{ position: "absolute", left: 140, bottom: 90 }}>
-        <Caption kicker="One page" text={<>Everything you're making, at a glance.</>} size={58} />
+        <Caption {...TOUR.board} size={58} />
       </Appear>
 
       {/* one card: a dark wash on the right keeps the captions clear of the next card */}
       <AbsoluteFill style={{ background: `linear-gradient(to left, ${C.ground} 0%, ${C.ground} 37%, ${C.ground}00 42%)`, opacity: interpolate(f, [T.card + 20, T.card + 45, T.rest - 10, T.rest + 15], [0, 1, 1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }) }} />
       <Appear from={T.card + 40} to={T.now - 4} style={side}>
-        <Caption kicker="Active" kickerColor={C.go} text={<>Each project in motion gets a card: what it looks like now, and where it stands.</>} />
+        <Caption {...TOUR.card} kickerColor={C.go} />
       </Appear>
       <Appear from={T.now + 6} to={T.next} style={side}>
-        <Caption kicker="Now" text="Where the project stands today." />
+        <Caption {...TOUR.now} />
       </Appear>
       <Appear from={T.next + 6} to={T.calls} style={side}>
-        <Caption kicker="Next" text="The very next step." />
+        <Caption {...TOUR.next} />
       </Appear>
       <Appear from={T.calls + 6} to={T.rest - 16} style={side}>
-        <Caption kicker="Your calls" kickerColor={C.wait} text="The decisions only you can make." />
+        <Caption {...TOUR.calls} kickerColor={C.wait} />
       </Appear>
 
       {/* resting and archive */}
       <AbsoluteFill style={{ background: `linear-gradient(to bottom, ${C.ground} 0%, ${C.ground}f0 26%, transparent 42%)`, opacity: interpolate(f, [T.rest + 20, T.rest + 45], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }) }} />
       <Appear from={T.rest + 35} style={{ position: "absolute", left: 140, top: 110 }}>
-        <Caption kicker="Resting · Archive" kickerColor={C.ink2} text="Quieter projects fold into rows. Finished ones fold away." size={52} />
+        <Caption {...TOUR.rest} kickerColor={C.ink2} size={52} />
       </Appear>
     </AbsoluteFill>
   );

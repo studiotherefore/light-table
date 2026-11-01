@@ -4,17 +4,12 @@ import React from "react";
 import { AbsoluteFill, interpolate, useCurrentFrame } from "remotion";
 import { BoardImage, frameOn, L, onScreen } from "../Board";
 import { Appear, Caption } from "../parts";
-import { C, FONT } from "../theme";
+import { WRAP_UP as W } from "../script";
+import { C, FONT, s } from "../theme";
 
-const TYPE_AT = 40, REVEAL_AT = 196;
-const PROMPT = "wrap up";
-const STEPS: { at: number; text: string; color?: string }[] = [
-  { at: 84, text: "Read HANDOFF.md and today's 4 commits" },
-  { at: 108, text: "Captured the app at localhost:5173" },
-  { at: 132, text: "Rewrote Tide Clock: now, next step, 2 calls" },
-  { at: 156, text: "Rebuilt the board" },
-  { at: 186, text: "✓ Tide Clock is up to date", color: C.go },
-];
+const TYPE_AT = s(W.typeAt), REVEAL_AT = s(W.revealAt);
+const PROMPT = W.prompt;
+const STEPS = W.steps.map(st => ({ at: s(st.at), text: st.text, color: "done" in st && st.done ? C.go : undefined }));
 
 const cam = frameOn(L.after.card, 1.4, 1390, 520);
 
@@ -28,7 +23,7 @@ export const WrapUp: React.FC = () => {
   return (
     <AbsoluteFill style={{ background: C.ground }}>
       <Appear from={6} style={{ position: "absolute", left: 110, top: 120, width: 820 }}>
-        <Caption kicker="Wrap up" text={<>At the end of a session, say “wrap up”. The card rewrites itself.</>} size={50} />
+        <Caption kicker={W.kicker} text={W.text} size={50} />
       </Appear>
 
       {/* a terminal: Claude Code in the project's folder */}
@@ -36,7 +31,7 @@ export const WrapUp: React.FC = () => {
         <div style={{ background: C.sheet, border: `1px solid ${C.ruleHi}`, borderRadius: 14, overflow: "hidden", boxShadow: "0 30px 80px rgba(0,0,0,.45)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "16px 20px", borderBottom: `1px solid ${C.rule}`, background: C.sheet2 }}>
             {["#ff5f57", "#febc2e", "#28c840"].map(c => <span key={c} style={{ width: 14, height: 14, borderRadius: 7, background: c, opacity: 0.85 }} />)}
-            <span style={{ flex: 1, textAlign: "center", font: `400 19px/1 ${FONT.mono}`, color: C.ink3, marginRight: 60 }}>tide-clock · Claude Code</span>
+            <span style={{ flex: 1, textAlign: "center", font: `400 19px/1 ${FONT.mono}`, color: C.ink3, marginRight: 60 }}>{W.window}</span>
           </div>
           <div style={{ padding: "28px 32px 34px", font: `400 25px/1.75 ${FONT.mono}`, color: C.ink2, minHeight: 330 }}>
             <div style={{ color: C.ink }}>
@@ -61,7 +56,7 @@ export const WrapUp: React.FC = () => {
           )}
       </AbsoluteFill>
       <Appear from={REVEAL_AT + 40} style={{ position: "absolute", left: card.x - 150, width: card.w + 300, top: card.y + card.h + 24, textAlign: "center" }}>
-        <div style={{ font: `400 21px/1 ${FONT.mono}`, color: C.ink3 }}>new screenshot · new status · 3 days ago → today</div>
+        <div style={{ font: `400 21px/1 ${FONT.mono}`, color: C.ink3 }}>{W.after}</div>
       </Appear>
     </AbsoluteFill>
   );

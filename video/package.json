@@ -8,6 +8,7 @@
     "capture": "node scripts/capture.mjs",
     "studio": "remotion studio",
     "render": "remotion render LightTableDemo out/light-table-demo.mp4",
+    "render:long": "remotion render LightTableTour out/light-table-tour.mp4",
     "still": "remotion still LightTableDemo out/poster.png --frame=60"
   },
   "dependencies": {

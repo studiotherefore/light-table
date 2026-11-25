@@ -7,5 +7,6 @@
  "skipDirs": [],
  "ignoreFolders": ["Archive", "Reference"],
  "gallerySkip": ["old", "archive", "_old"],
- "galleryMax": 5
+ "galleryMax": 5,
+ "portfolio": { "name": "Your Studio", "repo": "" }
 }

@@ -1,0 +1,24 @@
+{
+ "tide-clock": {
+  "public": true,
+  "kind": "a clock that keeps the sea's time",
+  "order": 0
+ },
+ "loom-sim": {
+  "public": true,
+  "order": 1
+ },
+ "moth-radio": {
+  "public": true,
+  "kind": "night sounds from wherever it's dark",
+  "order": 2
+ },
+ "letterpress-site": {
+  "public": true,
+  "order": 3
+ },
+ "pixel-garden": {
+  "public": true,
+  "order": 4
+ }
+}

@@ -28,6 +28,7 @@ If the scheduled task's prompt names a table folder, add it as the last argument
 - Don't rewrite an entry that `sweep.py` or `cloud.py` didn't flag, except to add a missing `about` (step 4b).
 - **Never edit `notes.json`** or `framing.json` in the table folder: those are the owner's own notes and cover framing, typed and set on the board.
 - **Never set, change or remove `shelf` or `rank`.** New entries get neither. Keep every field you aren't updating.
+- **Never write `portfolio.json` or run `publish.py`.** What goes on the public portfolio is the owner's choice, made on the board.
 - Don't invent. If the docs don't say, leave the field as it was and append ` (unconfirmed)` only to what you inferred.
 
 ## Steps

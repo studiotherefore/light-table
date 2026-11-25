@@ -108,6 +108,14 @@ body.cmd-held .slide .shot:has(img) { cursor: move; }
 .slide:hover .cycle { opacity: .7; }
 .slide .cycle:hover, .slide .cycle.playing { opacity: 1; color: var(--accent); }
 .cycle svg { width: 15px; height: 15px; }
+/* the globe: on your public portfolio (accent, always shown) or not (faint, on hover) */
+.pub { background: none; border: 0; padding: 2px 3px; margin: 0; cursor: pointer; color: var(--ink-3);
+  opacity: 0; transition: opacity .25s ease, color .2s ease; line-height: 0; align-self: center; }
+.slide:hover .pub, .row:hover .pub, .pub:focus-visible { opacity: .7; }
+.pub:hover { opacity: 1 !important; color: var(--ink); }
+.pub.on { opacity: 1; color: var(--accent); }
+.pub svg { width: 14px; height: 14px; }
+.links .pub { margin-left: auto; padding: 4px; }
 .pips { position: absolute; left: 8px; bottom: 8px; display: flex; gap: 4px; padding: 5px 6px; border-radius: 3px;
   background: rgba(10, 12, 15, .6); opacity: 0; transition: opacity .3s ease; pointer-events: none; }
 .pips.on { opacity: 1; }
@@ -220,6 +228,8 @@ details.archive .row { opacity: .8; }
   border: 1px solid var(--rule); background: var(--sheet); color: var(--ink-2); }
 .act:hover:not(:disabled) { border-color: var(--ink-3); color: var(--ink); }
 .act:disabled { opacity: .45; cursor: default; }
+a.act { text-decoration: none; }
+a.act[hidden] { display: none; }
 .busy { font: 12px/1 var(--mono); color: var(--accent); }
 .title .r { display: flex; align-items: baseline; gap: 10px; }
 
@@ -296,6 +306,7 @@ a.folder-sm { display: inline-block; }
         <span class="busy" id="busy" hidden></span>
         <button type="button" class="act" data-act="rescan" title="Pick up new screenshots and dates">Rescan</button>
         <button type="button" class="act" data-act="recapture" title="Retake the automatic screenshots (about a minute)">Recapture</button>
+        <a class="act" id="portfolio-link" href="/portfolio/" target="_blank" rel="noopener" title="Preview your public portfolio (the projects with a lit globe)">Portfolio</a>
       </div>
     </div>
   </header>
@@ -437,7 +448,7 @@ function slide(p) {
              <div class="note-meta">${p.noteUpdated ? `Saved ${shortDate(p.noteUpdated)}` : ""}</div>`
           : (p.note ? `<p class="note-text">${esc(p.note)}</p>` : `<p class="quiet">No notes yet.</p>`)}
       </div>
-      <div class="links">${openLinks(p)}</div>
+      <div class="links">${openLinks(p)}${pubBtn(p)}</div>
     </div>
   </article>`;
 }
@@ -481,10 +492,20 @@ function row(p) {
     <div class="thumb"${frameStyle(p)}>${thumb}</div>
     <div><b>${titleLink(p)}</b>${folderBtn(p, true)}<div class="kind">${esc(p.kind)} · ${esc(LABEL[p.status] || p.status)}</div></div>
     <div class="s ${p.note ? "noted" : "dim"}" data-row-note="${esc(p.id)}"${SAVE ? ` title="${p.note ? "Your note. Click to edit." : "Click to write a note"}"` : ""}>${esc(p.note || p.nextStep || p.summary)}</div>
-    <div class="r"><span class="when">${ago(lastTouch(p))}</span>${grip}</div></div>`;
+    <div class="r">${pubBtn(p)}<span class="when">${ago(lastTouch(p))}</span>${grip}</div></div>`;
 }
 
-if (!SAVE) document.querySelectorAll(".actions .act").forEach(b => { b.disabled = true; b.title = "Open the board through its local server (python3 core/open.py) to use this"; });
+// The globe: whether the project is on your public portfolio (portfolio.py).
+const GLOBE_SVG = `<svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="8" cy="8" r="6.25"/><ellipse cx="8" cy="8" rx="2.6" ry="6.25"/><path d="M1.9 6h12.2M1.9 10h12.2"/></svg>`;
+function pubBtn(p) {
+  if (!SAVE) return "";
+  return `<button type="button" class="pub${p.public ? " on" : ""}" data-public="${esc(p.id)}" aria-pressed="${!!p.public}" title="${p.public ? "On your portfolio. Click to take it off." : "Put it on your portfolio"}">${GLOBE_SVG}</button>`;
+}
+
+// The Portfolio button opens the preview the board serves; the online demo points it at its sample portfolio.
+{ const pl = document.getElementById("portfolio-link");
+  if (STUDIO.portfolioUrl) pl.href = STUDIO.portfolioUrl; else if (!SAVE) pl.hidden = true; }
+if (!SAVE) document.querySelectorAll(".actions button.act").forEach(b => { b.disabled = true; b.title = "Open the board through its local server (python3 core/open.py) to use this"; });
 
 async function post(path, body, label, reload = true) {
   const busy = document.getElementById("busy");
@@ -858,6 +879,12 @@ document.addEventListener("click", e => {
     if (a.dataset.act === "open-folder") return post("/api/open", { id: a.dataset.id, what: "folder" }, "Opening in Finder…", false);
     if (a.dataset.act === "open-app") return post("/api/open", { id: a.dataset.id, what: "app" }, "Launching…", false);
     if (a.dataset.act === "open-handoff") return post("/api/open", { id: a.dataset.id, what: "handoff" }, "Opening the handoff…", false);
+  }
+  const pub = SAVE && e.target.closest("[data-public]");
+  if (pub) {
+    const p = STUDIO.projects.find(x => x.id === pub.dataset.public);
+    p.public = !p.public; render();
+    return post("/api/portfolio", { id: p.id, public: p.public }, p.public ? "Adding to your portfolio…" : "Taking it off your portfolio…", false);
   }
   const tb = e.target.closest("[data-tab]");
   if (tb) {

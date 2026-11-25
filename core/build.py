@@ -239,11 +239,19 @@ def main():
     except (OSError, ValueError):
         framing = {}
 
+    # Which projects the owner put on their public portfolio (the globe on a card; portfolio.py builds it).
+    try:
+        with open(table_path("portfolio.json")) as fh:
+            public = {k for k, v in json.load(fh).items() if v.get("public")}
+    except (OSError, ValueError, AttributeError):
+        public = set()
+
     agent = sessions.provider(CFG["sessions"])
     used = set()
     for p in data["projects"]:
         if p["id"] in notes:
             p["note"], p["noteUpdated"] = notes[p["id"]]["text"], notes[p["id"]]["updated"]
+        p["public"] = p["id"] in public
         folder = os.path.join(ROOT, p["folder"])
         if p.get("local") is False:
             folder = ""  # the local copy is old; remote() fills in the links

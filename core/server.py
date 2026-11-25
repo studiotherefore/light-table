@@ -11,6 +11,11 @@
                       (never in the record, so no sweep or agent touches it); empty text removes it
   POST /api/frame     {"id": ..., "key": ..., "x": 0-100, "y": 0-100, "zoom": 1-4, "fit": bool}  how the owner
                       framed a card's cover (Frame icon, or ⌘-drag / ⌘-scroll), kept in framing.json for that image only; centred removes it
+  POST /api/portfolio {"id": ..., "public": bool} | {"id", "about": text} | {"id", "kind": text} | {"id", "hide"|"show": image key}
+                      | {"id", "link": bool} | {"order": [ids]}  what goes on your public portfolio, kept in
+                      portfolio.json (never in the record, so no sweep or agent touches it); rebuilds the preview
+  GET  /portfolio/    the portfolio preview (portfolio.py writes site/ in the table folder)
+  POST /api/publish   push the portfolio to your GitHub Pages repository (publish.py; config.json "portfolio")
 
 Only ever writes inside the table folder (see config.py). Listens on localhost only.
 """
@@ -27,6 +32,8 @@ from config import CORE as HERE, HOME, PORT, RECORD, ROOT, require_root, table_p
 
 NOTES = table_path("notes.json")
 FRAMING = table_path("framing.json")
+PORTFOLIO = table_path("portfolio.json")
+SITE = table_path("site")
 LOCK = threading.Lock()
 
 
@@ -72,6 +79,22 @@ class Handler(BaseHTTPRequestHandler):
         if path in icons:
             name, kind = icons[path]
             with open(os.path.join(HERE, "icons", name), "rb") as fh:
+                return self.reply(200, fh.read(), kind)
+        if path == "/portfolio":
+            self.send_response(301)
+            self.send_header("Location", "/portfolio/")
+            self.send_header("Content-Length", "0")
+            return self.end_headers()
+        if path.startswith("/portfolio/"):
+            # The portfolio preview (portfolio.py writes site/). Plain names only: no "..".
+            name = path[len("/portfolio/"):] or "index.html"
+            full = os.path.join(SITE, name)
+            kinds = {".html": "text/html; charset=utf-8", ".jpg": "image/jpeg", ".png": "image/png",
+                     ".svg": "image/svg+xml", ".ico": "image/x-icon"}
+            kind = kinds.get(os.path.splitext(name)[1])
+            if ".." in name or not kind or not os.path.isfile(full):
+                return self.reply(404, {"error": "not found"})
+            with open(full, "rb") as fh:
                 return self.reply(200, fh.read(), kind)
         if self.path == "/api/ping":
             return self.reply(200, {"ok": True, "home": HOME})
@@ -166,6 +189,67 @@ class Handler(BaseHTTPRequestHandler):
                 places.write(FRAMING, framing)
                 r = run("build.py")
                 return self.reply(200, {"ok": r.returncode == 0})
+            if self.path == "/api/portfolio":
+                with open(RECORD) as fh:
+                    ids = {p["id"] for p in json.load(fh)["projects"]}
+                try:
+                    chosen = places.load(PORTFOLIO)
+                except (OSError, ValueError):
+                    chosen = {}
+                if "order" in body:
+                    # You dragged a card in the preview: the portfolio's own order, kept apart from the board's.
+                    order = body["order"]
+                    if not isinstance(order, list) or not all(isinstance(x, str) for x in order):
+                        return self.reply(400, {"error": "bad order"})
+                    for i, x in enumerate(x for x in order if x in chosen):
+                        chosen[x]["order"] = i
+                    places.write(PORTFOLIO, chosen)
+                    pf = run("portfolio.py")
+                    return self.reply(200, {"ok": pf.returncode == 0})
+                pid = body.get("id")
+                if pid not in ids:
+                    return self.reply(400, {"error": "unknown card"})
+                mine = chosen.setdefault(pid, {})
+                if "public" in body:
+                    mine["public"] = body["public"] is True
+                if "link" in body:  # off: the live site isn't linked on the portfolio
+                    if body["link"] is True:
+                        mine.pop("link", None)
+                    else:
+                        mine["link"] = False
+                if "about" in body:
+                    if not isinstance(body["about"], str) or len(body["about"]) > 5000:
+                        return self.reply(400, {"error": "text too long"})
+                    if body["about"].strip():
+                        mine["about"] = body["about"].strip()
+                    else:
+                        mine.pop("about", None)
+                if "kind" in body:  # the one line under the name; empty goes back to the board's
+                    if not isinstance(body["kind"], str) or len(body["kind"]) > 200:
+                        return self.reply(400, {"error": "text too long"})
+                    if body["kind"].strip():
+                        mine["kind"] = " ".join(body["kind"].split())
+                    else:
+                        mine.pop("kind", None)
+                for k in ("hide", "show"):
+                    key = body.get(k)
+                    if isinstance(key, str) and 0 < len(key) <= 500:
+                        hidden = set(mine.get("hide", []))
+                        hidden.add(key) if k == "hide" else hidden.discard(key)
+                        mine["hide"] = sorted(hidden)
+                if not mine.get("hide"):
+                    mine.pop("hide", None)
+                if not mine.get("public") and len(mine) == 1:
+                    chosen.pop(pid)  # off, and nothing written for it: forget it
+                places.write(PORTFOLIO, chosen)
+                r = run("build.py") if "public" in body else None
+                pf = run("portfolio.py")
+                return self.reply(200, {"ok": pf.returncode == 0 and (r is None or r.returncode == 0)})
+            if self.path == "/api/publish":
+                # Push the portfolio to your GitHub Pages repository (publish.py checks it first). Only from the preview's button.
+                r = run("publish.py")
+                msg = (r.stdout if r.returncode == 0 else r.stderr).strip().splitlines()
+                return self.reply(200 if r.returncode == 0 else 500, {"ok": r.returncode == 0, "message": msg[-1] if msg else ""})
         self.reply(404, {"error": "not found"})
 
 

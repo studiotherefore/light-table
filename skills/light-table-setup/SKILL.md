@@ -44,6 +44,7 @@ Keep the user updates short and plain. Ask questions with your question/choice t
    - **Nightly sweep**: keeps entries current every night. Claude desktop app: create a scheduled task (daily, about 11 PM) whose prompt is "Run the light-table-sweep skill." Then tell them to press **Run now** on it once while they're at the computer and choose "Always allow" for each command it asks about (three fixed commands). The approvals stay with the task, so night runs never stop to wait for a prompt nobody sees. After a plugin update, do one more Run now, since the commands' path changes. Everyone else: see `schedule/README.md` in the StudioWall code (a launchd job that runs the sweep through `claude -p`).
    - **Backup**: make the table folder a private Git repo of their own (`git init`, add their remote). The sweep then backs it up nightly with `CORE/backup.sh`. Never create a remote repo for them without asking.
    - **Claude Code buttons** (optional panel above the prompt): see `claude/panel/README.md`.
+   - **Public portfolio**: the globe on a card picks projects for a public site; **Portfolio** on the board previews it. To publish, they make a public GitHub repository named `<username>.github.io` and switch Pages on (Settings → Pages → Deploy from branch, `main`): that's theirs to do, so never create a public repository for them. Then add `"portfolio": { "name": "<their site's name>", "repo": "<username>/<username>.github.io" }` to `config.json`. Only they press Publish.
 12. Finish with two lines: how many projects are on the board, and its address.
 
 ## Hard rules
@@ -51,3 +52,4 @@ Keep the user updates short and plain. Ask questions with your question/choice t
 - Read-only in every project folder. Write only the table folder (and, if they ask, their scheduler or agent config).
 - Never start or stop project servers during setup.
 - Never set `shelf` or `rank`.
+- Never write `portfolio.json` and never run `publish.py`: what goes public is the user's choice, made on the board.

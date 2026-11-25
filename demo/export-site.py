@@ -7,6 +7,9 @@ paths, the Folder / Handoff links pointing at the demo's files on GitHub, and a
 banner saying it's a demo. The Local buttons are left off: they would point at
 the visitor's own computer. Served over https, the page is read-only by itself:
 drag, notes and the other buttons that need the local server are off.
+
+It also exports the demo's sample portfolio (portfolio.py --publish) to portfolio/,
+and points the board's Portfolio button at it.
 """
 import json
 import os
@@ -45,6 +48,8 @@ for p in data["projects"]:
     for key, kind in (("folderUrl", "tree"), ("handoffUrl", "blob")):
         if p.get(key):
             p[key] = p[key].replace(REPO.as_uri() + "/", f"{GITHUB}/{kind}/main/", 1)
+# The Portfolio button opens the sample portfolio exported beside the board.
+data["portfolioUrl"] = "portfolio/"
 payload = json.dumps(data, indent=1).replace("</", "<\\/")
 page = page[:start] + payload + page[end:]
 # Images and icons are served from the server's root locally; on the site they sit next to the page.
@@ -64,4 +69,18 @@ OUT.mkdir(parents=True)
 shutil.copytree(TABLE / "thumbs", OUT / "thumbs", ignore=shutil.ignore_patterns("*.src"))
 for icon in (REPO / "core" / "icons").iterdir():
     shutil.copy(icon, OUT / icon.name)
+
+# The sample portfolio: the clean public version, exactly as Publish would push it.
+subprocess.run([sys.executable, str(REPO / "core" / "portfolio.py"), "--publish", str(OUT / "portfolio")],
+               env={**os.environ, "LIGHT_TABLE_HOME": str(TABLE)}, check=True)
+folio = (OUT / "portfolio" / "index.html").read_text()
+# Check its projects, not the page's own code (which mentions localhost for the preview).
+start = folio.index("const DATA =")
+folio_data = folio[start:folio.index("\n// Editing works only", start)]
+for local in ("file://", "localhost", "127.0.0.1", '"key":', str(REPO), str(pathlib.Path.home())):
+    if local in folio_data:
+        sys.exit(f"export-site: '{local}' is left in the portfolio; not exporting it.")
+FOLIO_BANNER = BANNER.replace("A demo board with invented projects, read-only here.",
+                              "A sample portfolio, published from the demo board's lit globes.")
+(OUT / "portfolio" / "index.html").write_text(folio.replace("<body>", "<body>\n" + FOLIO_BANNER, 1))
 print(f"export-site: wrote {OUT}")

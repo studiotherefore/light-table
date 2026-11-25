@@ -3,5 +3,8 @@
  "port": 8131,
  "title": "StudioWall",
  "sessions": "none",
- "demo": true
+ "demo": true,
+ "portfolio": {
+  "name": "Demo Studio"
+ }
 }

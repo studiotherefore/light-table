@@ -21,6 +21,12 @@ config.json (see config.example.json):
   gallerySkip   folder names whose images stay out of the hover cycle
   galleryMax    how many images the hover cycle shows
   demo          true for the demo board: dates shift so the newest entry is today
+  portfolio     your public portfolio (portfolio.py, publish.py), all optional:
+                  name    the site's name: header, tab title, footer (default "Portfolio")
+                  repo    your GitHub Pages repository, "you/you.github.io"; Publish
+                          needs it (you make the repository and switch Pages on)
+                  url     the site's address (default: worked out from repo)
+                  remote  the git remote to push to (default https://github.com/<repo>.git)
 
 Run it to see the resolved settings as JSON (skills and the panel use this):
   python3 core/config.py
@@ -80,6 +86,23 @@ GALLERY_MAX = int(CFG["galleryMax"])
 BOARD_URL = f"http://localhost:{PORT}/"
 
 
+def portfolio_settings():
+    """The public portfolio's name, repository, address and git remote, from config.json."""
+    pf = CFG.get("portfolio") if isinstance(CFG.get("portfolio"), dict) else {}
+    name = " ".join(str(pf.get("name") or "").split()) or "Portfolio"
+    repo = str(pf.get("repo") or "").strip().strip("/")
+    if repo.startswith("https://github.com/"):
+        repo = repo[len("https://github.com/"):]
+    repo = repo[:-4] if repo.endswith(".git") else repo
+    owner, _, site = repo.partition("/")
+    url = str(pf.get("url") or "").strip()
+    if not url and owner and site:
+        # A user site (you/you.github.io) is served at the root; any other repository under its name.
+        url = f"https://{site}" if site.lower() == f"{owner}.github.io".lower() else f"https://{owner}.github.io/{site}"
+    remote = str(pf.get("remote") or "").strip() or (f"https://github.com/{repo}.git" if owner and site else "")
+    return {"name": name, "repo": repo if owner and site else "", "url": url.rstrip("/"), "remote": remote}
+
+
 def require_root():
     """Stop with a plain message when the table hasn't been set up yet."""
     if not ROOT or not os.path.isdir(ROOT):
@@ -99,4 +122,4 @@ if __name__ == "__main__":
     print(json.dumps({"core": CORE, "home": HOME, "config": CONFIG_PATH, "record": RECORD,
                       "root": ROOT, "port": PORT, "boardUrl": BOARD_URL, "chrome": CHROME,
                       "sessions": CFG["sessions"], "configExists": os.path.exists(CONFIG_PATH),
-                      "recordExists": os.path.exists(RECORD)}, indent=1))
+                      "recordExists": os.path.exists(RECORD), "portfolio": portfolio_settings()}, indent=1))

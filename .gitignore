@@ -21,6 +21,11 @@ sweep.log
 places.json
 notes.json
 framing.json
+portfolio.json
+site/
+pages/
 .studio-sync
 # The demo board shows one invented note
 !demo/table/notes.json
+# The demo board's sample portfolio picks (invented projects)
+!demo/table/portfolio.json

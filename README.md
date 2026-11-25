@@ -69,13 +69,33 @@ Optional: **one row of buttons above the prompt** (Open, App, Local, Live, Board
 | Catch up every project now | "Run the StudioWall sweep" (`/light-table:light-table-sweep`) |
 | Choose a project's cover image | Name an image in its folder `…current….png` |
 | Keep headless screenshots off for a project | Set `"autoCapture": false` on its entry |
+| Show a project on your public portfolio | Click the globe on its card, then **Portfolio** |
 
 The nightly sweep: [schedule/README.md](schedule/README.md).
+
+## Your public portfolio
+
+The board can publish a public portfolio: a static site of the projects you pick, with none of the development detail ([see the demo's](https://studiotherefore.github.io/light-table/portfolio/)).
+
+- **Pick projects** with the globe on a card (or a Resting / Archive row). Lit means it's on the portfolio.
+- **Portfolio** in the board's header opens a preview only you can see. There you can rewrite the one-liner and the About for visitors (empty goes back to the board's text), open the screenshots to leave any out, unlink a live site that isn't ready, and drag cards into order. The preview flags text that looks private or technical (file paths, local addresses, emails, words like "commit").
+- **Publish** pushes exactly what the preview shows, minus the editing, to your GitHub Pages repository. It refuses if a file path, local address or email is still in the text. Only you press Publish: the nightly sweep and agents never do.
+
+Visitors see each project's name, one-liner, About, cover (with your framing) and other screenshots, and a **Visit ↗** link. Never its status, next step, calls, notes, folders, servers, sessions or dates.
+
+To set up publishing once: make a public repository on GitHub named `<your-username>.github.io` and switch on Pages for it (Settings → Pages → Deploy from branch, `main`). Then add it to your `config.json`:
+
+```json
+"portfolio": { "name": "Your Studio", "repo": "you/you.github.io" }
+```
+
+`name` is the site's title. `url` and `remote` are optional (another address, or an SSH remote such as `git@github.com:you/you.github.io.git`). Publishing uses your own git sign-in to GitHub.
 
 ## What's where
 
 ```
 core/        the board: build.py, server.py, sweep.py, cloud.py, snap.py, open.py, template.html
+             the portfolio: portfolio.py, portfolio.html, publish.py
              config.example.json, projects.example.json, RECORD.md (every field and rule)
 skills/      light-table-setup, -wrap-up, -sweep, -open (Agent Skills format)
 demo/        an invented board to try it out (the image above)
@@ -85,7 +105,7 @@ codex/       early Codex work (not supported yet)
 schedule/    nightly sweep through launchd for anyone without the Claude app's scheduler
 ```
 
-Your table folder (`~/.light-table`, or `$LIGHT_TABLE_HOME`) holds `config.json`, `projects.json`, Wrap up screenshots (`shots/`) and generated files. It's never inside this repo.
+Your table folder (`~/.light-table`, or `$LIGHT_TABLE_HOME`) holds `config.json`, `projects.json`, Wrap up screenshots (`shots/`), your portfolio choices (`portfolio.json`) and generated files, including the portfolio preview (`site/`) and the clone of your Pages repository (`pages/`). It's never inside this repo.
 
 ## Privacy
 
@@ -93,6 +113,7 @@ Your table folder (`~/.light-table`, or `$LIGHT_TABLE_HOME`) holds `config.json`
 - Agents following these skills write only to the table folder. They never edit, commit or push in your project folders (git there is read-only: log, status, diff).
 - Agents never move your cards: `shelf` and `rank` are yours.
 - Backup is off unless you make the table folder a Git repo with your own private remote.
+- Nothing goes on your public portfolio until you light a project's globe and press Publish yourself. Agents never write `portfolio.json` and never publish.
 - The record holds your project names, notes, people and deadlines. Don't put your table folder in a public repo.
 - Found a security problem? See [SECURITY.md](SECURITY.md).
 

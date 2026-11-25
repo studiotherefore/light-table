@@ -43,5 +43,6 @@ Run `python3 "$CORE/places.py" restore` (it puts back any card placement that ch
 
 - Edit nothing outside the table folder. Don't touch the project's files for this.
 - **Never change an entry's `shelf` or `rank`**: that's where the owner placed it on the board.
+- **Never write `portfolio.json` or run `publish.py`.** What goes on the public portfolio is the owner's choice, made on the board.
 - **Never edit `notes.json`** or `framing.json` in the table folder: those are the owner's own notes and cover framing, typed and set on the board.
 - Don't invent. Mark inferences ` (unconfirmed)`.
